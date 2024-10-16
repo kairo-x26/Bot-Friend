@@ -3,4 +3,5 @@ packages:
   - packages/*
   - evals
 allowBuilds:
+  '@swc/core': true
   esbuild: true
