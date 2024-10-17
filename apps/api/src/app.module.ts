@@ -1,5 +1,6 @@
 import { Module, type DynamicModule } from '@nestjs/common';
 import { AppConfig } from './config/config.js';
+import { DatabaseModule } from './db/database.module.js';
 import { HealthController } from './health/health.controller.js';
 
 export interface AppModuleOptions {
@@ -12,6 +13,7 @@ export class AppModule {
     return {
       module: AppModule,
       global: true,
+      imports: [DatabaseModule],
       controllers: [HealthController],
       providers: [{ provide: AppConfig, useValue: options.config }],
       exports: [AppConfig],

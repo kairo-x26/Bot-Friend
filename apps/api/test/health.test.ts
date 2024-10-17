@@ -1,12 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
-import { createApp } from '../src/bootstrap.js';
 import { AppConfig } from '../src/config/config.js';
+import { createTestApp } from './support/app.js';
 
 let app: NestFastifyApplication;
 
 beforeAll(async () => {
-  app = await createApp({ config: AppConfig.fromEnv({ NODE_ENV: 'test', LOG_LEVEL: 'silent' }) });
+  ({ app } = await createTestApp());
 });
 afterAll(() => app.close());
 

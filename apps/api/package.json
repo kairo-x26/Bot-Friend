@@ -8,7 +8,9 @@
     "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput & node --env-file-if-exists=.env --watch dist/main.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "node --env-file-if-exists=.env dist/scripts/migrate.js"
   },
   "devDependencies": {
     "@swc/core": "^1.16.18",

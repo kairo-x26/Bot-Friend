@@ -30,6 +30,7 @@ export async function createApp(options: AppModuleOptions): Promise<NestFastifyA
   const app = await NestFactory.create<NestFastifyApplication>(AppModule.register(options), adapter, {
     logger: config.env.LOG_LEVEL === 'silent' ? false : ['error', 'warn', 'log'],
     bufferLogs: false,
+    abortOnError: false,
   });
 
   const fastify = app.getHttpAdapter().getInstance();
