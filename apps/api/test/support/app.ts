@@ -1,4 +1,5 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
+import type { AppOverrides } from '../../src/app.module.js';
 import { createApp } from '../../src/bootstrap.js';
 import { AppConfig } from '../../src/config/config.js';
 import { DB, type Db } from '../../src/db/database.js';
@@ -19,9 +20,12 @@ export const TEST_ENV: Record<string, string> = {
   RETENTION_SWEEP_MINUTES: '0',
 };
 
-export async function createTestApp(env: Record<string, string> = {}): Promise<TestApp> {
+export async function createTestApp(
+  env: Record<string, string> = {},
+  overrides: AppOverrides = {},
+): Promise<TestApp> {
   const config = AppConfig.fromEnv({ ...TEST_ENV, ...env });
-  const app = await createApp({ config });
+  const app = await createApp({ config, overrides });
   const db = app.get<Db>(DB);
   return { app, db, config, close: () => app.close() };
 }
