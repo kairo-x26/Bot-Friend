@@ -2,6 +2,7 @@ import { Module, type DynamicModule, type Provider } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module.js';
 import { ID_TOKEN_VERIFIER, OidcIdTokenVerifier, type IdTokenVerifier } from './auth/id-token-verifier.js';
 import { AppConfig } from './config/config.js';
+import { ConversationsModule } from './conversations/conversations.module.js';
 import { DatabaseModule } from './db/database.module.js';
 import { HealthController } from './health/health.controller.js';
 import { UsersModule } from './users/users.module.js';
@@ -28,7 +29,7 @@ export class AppModule {
     return {
       module: AppModule,
       global: true,
-      imports: [DatabaseModule, AuthModule, UsersModule],
+      imports: [DatabaseModule, AuthModule, UsersModule, ConversationsModule],
       controllers: [HealthController],
       providers: [{ provide: AppConfig, useValue: config }, ...integrations],
       exports: [AppConfig, ...integrations.map((p) => (p as { provide: symbol }).provide)],

@@ -232,3 +232,8 @@ export const accountDeletionResponseSchema = z.object({
   status: z.enum(['scheduled', 'running', 'completed', 'failed']),
 });
 export type AccountDeletionResponse = z.infer<typeof accountDeletionResponseSchema>;
+
+export const updateConversationSchema = z.object({
+  title: z.string().trim().min(1).max(120),
+});
+export type UpdateConversation = z.infer<typeof updateConversationSchema>;
