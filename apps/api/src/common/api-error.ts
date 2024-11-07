@@ -16,6 +16,7 @@ const STATUS: Record<ErrorCode, number> = {
   [ErrorCode.AccountDeleted]: HttpStatus.GONE,
   [ErrorCode.FeatureDisabled]: HttpStatus.NOT_FOUND,
   [ErrorCode.Internal]: HttpStatus.INTERNAL_SERVER_ERROR,
+  [ErrorCode.Cancelled]: HttpStatus.CONFLICT,
 };
 
 export class ApiError extends Error {

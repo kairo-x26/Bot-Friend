@@ -19,6 +19,8 @@ export const ErrorCode = {
   AccountDeleted: 'account_deleted',
   FeatureDisabled: 'feature_disabled',
   Internal: 'internal_error',
+  /** Generation was stopped by the user. Only appears in stream events. */
+  Cancelled: 'cancelled',
 } as const;
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
 

@@ -41,3 +41,28 @@ export async function guestLogin(t: TestApp, guestToken?: string) {
   if (res.status !== 200) throw new Error(`guest login failed: ${res.body}`);
   return res.json as SessionResponse;
 }
+
+import { SseParser, type StreamEvent } from '@bot-friend/shared';
+import { randomUUID } from 'node:crypto';
+
+export async function streamMessage(
+  t: TestApp,
+  token: string,
+  conversationId: string,
+  content: string,
+  extra: { idempotencyKey?: string; comedyStyle?: string } = {},
+) {
+  const res = await call(t, 'POST', `/v1/conversations/${conversationId}/messages/stream`, {
+    token,
+    body: { content, idempotencyKey: extra.idempotencyKey ?? randomUUID(), ...(extra.comedyStyle ? { comedyStyle: extra.comedyStyle } : {}) },
+  });
+  const events: StreamEvent[] = res.status === 200 ? new SseParser().push(res.body) : [];
+  const text = events.flatMap((e) => (e.type === 'message.delta' ? [e.text] : [])).join('');
+  return { ...res, events, text, terminal: events.at(-1) };
+}
+
+export async function newConversation(t: TestApp, token: string, body: object = {}) {
+  const res = await call(t, 'POST', '/v1/conversations', { token, body });
+  if (res.status !== 201) throw new Error(`create conversation failed: ${res.body}`);
+  return res.json as { id: string; title: string; mode: string; comedyStyle: string };
+}
