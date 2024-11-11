@@ -11,7 +11,7 @@ class ScriptedProvider implements AiProvider {
   readonly name = 'scripted';
   failuresLeft = 0;
   requests: GenerateRequest[] = [];
-  private readonly inner = new MockProvider(0);
+  inner: AiProvider = new MockProvider(0);
 
   async *generate(req: GenerateRequest, signal: AbortSignal) {
     this.requests.push(req);
@@ -48,7 +48,8 @@ describe('POST /v1/conversations/:id/messages/stream', () => {
     expect(res.terminal?.type).toBe('message.completed');
 
     const deltas = res.events.filter((e) => e.type === 'message.delta');
-    expect(deltas.length).toBeGreaterThan(3);
+    // The output guard releases whole sentences, so deltas are sentence-sized.
+    expect(deltas.length).toBeGreaterThan(1);
     expect(deltas.map((d) => (d as { seq: number }).seq)).toEqual(deltas.map((_, i) => i));
 
     const done = res.terminal as Extract<typeof res.terminal, { type: 'message.completed' }>;
@@ -112,10 +113,8 @@ describe('POST /v1/conversations/:id/messages/stream', () => {
   it('cancels a running generation without saving it as completed', async () => {
     const convo = await newConversation(t, token);
     const slowApp = t; // same app; slow output via the [[long]] trigger and a slow provider
-    const slow = new MockProvider(20);
     provider.failuresLeft = 0;
-    const original = provider.generate.bind(provider);
-    provider.generate = (req, signal) => slow.generate(req, signal);
+    provider.inner = new MockProvider(20);
 
     const pending = streamMessage(slowApp, token, convo.id, '[[long]] go on', { idempotencyKey: 'key-cancel-1' });
     let assistantId: string | undefined;
@@ -133,7 +132,7 @@ describe('POST /v1/conversations/:id/messages/stream', () => {
     expect(cancel.json).toEqual({ cancelled: true });
 
     const res = await pending;
-    provider.generate = original;
+    provider.inner = new MockProvider(0);
     expect(res.terminal).toMatchObject({ type: 'message.failed', code: 'cancelled' });
     const [row] = await t.db.select().from(messages).where(eq(messages.id, assistantId!));
     expect(row!.status).toBe('cancelled');
