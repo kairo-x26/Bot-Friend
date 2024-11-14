@@ -18,6 +18,10 @@ export const TEST_ENV: Record<string, string> = {
   AUTH_DEV_LOGIN: 'true',
   AI_PROVIDER: 'mock',
   RETENTION_SWEEP_MINUTES: '0',
+  RATE_LIMIT_AUTH_PER_MINUTE: '1000',
+  RATE_LIMIT_MESSAGES_PER_MINUTE: '1000',
+  QUOTA_FREE_DAILY: '1000',
+  QUOTA_GUEST_DAILY: '1000',
 };
 
 export async function createTestApp(

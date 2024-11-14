@@ -15,6 +15,7 @@ import { AppConfig } from './config/config.js';
 import { ConversationsModule } from './conversations/conversations.module.js';
 import { DatabaseModule } from './db/database.module.js';
 import { HealthController } from './health/health.controller.js';
+import { LimitsModule } from './limits/limits.module.js';
 import { UsersModule } from './users/users.module.js';
 
 /** Swap external integrations for fakes in tests or local demos. */
@@ -55,7 +56,7 @@ export class AppModule {
     return {
       module: AppModule,
       global: true,
-      imports: [DatabaseModule, AuthModule, UsersModule, ConversationsModule, ChatModule],
+      imports: [DatabaseModule, LimitsModule, AuthModule, UsersModule, ConversationsModule, ChatModule],
       controllers: [HealthController],
       providers: [{ provide: AppConfig, useValue: config }, ...integrations],
       exports: [AppConfig, ...integrations.map((p) => (p as { provide: symbol }).provide)],
