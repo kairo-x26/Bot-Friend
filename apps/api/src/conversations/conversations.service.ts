@@ -7,6 +7,7 @@ import type {
   MessagePage,
   PaginationQuery,
 } from '@bot-friend/shared';
+import { AnalyticsService } from '../audit/audit.service.js';
 import { ApiError } from '../common/api-error.js';
 import { decodeCursor, encodeCursor } from '../common/cursor.js';
 import { DB, type Db, type DbOrTx } from '../db/database.js';
@@ -22,6 +23,7 @@ export class ConversationsService {
   constructor(
     @Inject(DB) private readonly db: Db,
     private readonly users: UsersService,
+    private readonly analytics: AnalyticsService,
   ) {}
 
   async create(userId: string, input: CreateConversation & { mode: ConversationRow['mode'] }) {
@@ -41,6 +43,7 @@ export class ConversationsService {
         gameState: input.mode === 'chat' ? null : { round: 0, active: true },
       })
       .returning();
+    if (input.mode !== 'chat') this.analytics.track('game_started', userId, { mode: input.mode });
     return row!;
   }
 

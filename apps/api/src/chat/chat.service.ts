@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { and, desc, eq, inArray } from 'drizzle-orm';
 import { ErrorCode, type ComedyStyle, type SendMessage } from '@bot-friend/shared';
 import { buildPrompt, detectHumorIntent } from '../ai/prompt-builder.js';
+import { AnalyticsService } from '../audit/audit.service.js';
 import { AI_PROVIDER, ProviderError, type AiProvider, type PromptMessage } from '../ai/provider.js';
 import { ApiError } from '../common/api-error.js';
 import { AppConfig } from '../config/config.js';
@@ -39,6 +40,7 @@ export class ChatService {
     private readonly users: UsersService,
     private readonly inflight: InflightRegistry,
     private readonly safety: SafetyService,
+    private readonly analytics: AnalyticsService,
   ) {}
 
   /**
@@ -128,6 +130,9 @@ export class ChatService {
     });
 
     sink.send({ type: 'message.started', userMessage: toMessageDto(userMessage), assistantMessageId: assistant.id, replay: false });
+    if (!conversation.lastMessagePreview && !turn.existingUserMessage) {
+      this.analytics.track('chat_started', userId, { mode: conversation.mode, style });
+    }
 
     const controller = this.inflight.start(assistant.id, userId);
     const signal = AbortSignal.any([controller.signal, sink.closed, AbortSignal.timeout(this.config.env.AI_TIMEOUT_MS)]);
@@ -235,6 +240,13 @@ export class ChatService {
       });
 
       sink.send({ type: 'message.completed', message: toMessageDto(completed) });
+      this.analytics.track('reply_completed', userId, {
+        mode: conversation.mode,
+        style,
+        serious,
+        latencyMs: Date.now() - startedAt,
+        retry: Boolean(turn.existingUserMessage),
+      });
     } catch (err) {
       if (signal.aborted && !(err instanceof ProviderError)) {
         await this.finishCancelled(assistant, text, controller.signal.aborted, sink);
@@ -242,6 +254,7 @@ export class ChatService {
       }
       const timedOut = signal.aborted;
       this.logger.warn(`Generation failed for ${assistant.id}: ${(err as Error).message}`);
+      this.analytics.track('reply_failed', userId, { timedOut });
       await this.db
         .update(messages)
         .set({ status: 'failed', content: '', errorCode: ErrorCode.ProviderUnavailable, updatedAt: new Date() })
@@ -315,6 +328,7 @@ export class ChatService {
       return { userMessage: userMessage!, assistant: assistant! };
     });
     sink.send({ type: 'message.started', userMessage: toMessageDto(userMessage), assistantMessageId: assistant.id, replay: false });
+    this.analytics.track('reply_blocked', userId, { stage: 'input', support });
     sink.send({
       type: 'message.blocked',
       assistantMessageId: assistant.id,
@@ -347,6 +361,7 @@ export class ChatService {
         metadata: { conversationId: conversation.id },
       });
     });
+    this.analytics.track('reply_blocked', userId, { stage: 'output' });
     sink.send({
       type: 'message.blocked',
       assistantMessageId: assistant.id,
