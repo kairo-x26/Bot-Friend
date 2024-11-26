@@ -9,6 +9,7 @@ import {
   type ModerationProvider,
 } from './ai/provider.js';
 import { AccountModule } from './account/account.module.js';
+import { AdminModule } from './admin/admin.module.js';
 import { AuditModule } from './audit/audit.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { ID_TOKEN_VERIFIER, OidcIdTokenVerifier, type IdTokenVerifier } from './auth/id-token-verifier.js';
@@ -69,6 +70,7 @@ export class AppModule {
         ChatModule,
         ReportsModule,
         AccountModule,
+        AdminModule,
       ],
       controllers: [HealthController],
       providers: [{ provide: AppConfig, useValue: config }, ...integrations],
