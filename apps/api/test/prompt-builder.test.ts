@@ -93,12 +93,9 @@ describe('trimHistory', () => {
     content: `turn-${i}-${'x'.repeat(90)}`,
   }));
 
-  it('keeps the most recent turns within the message budget, starting on a user turn', () => {
+  it('keeps the most recent turns within the message budget, in order', () => {
     const out = trimHistory(turns, { maxMessages: 3, maxChars: 100_000 });
-    expect(out.map((t) => t.content.slice(0, 6))).toEqual(['turn-8', 'turn-9']);
-    const four = trimHistory(turns, { maxMessages: 4, maxChars: 100_000 });
-    expect(four[0]!.role).toBe('user');
-    expect(four).toHaveLength(4);
+    expect(out.map((t) => t.content.slice(0, 6))).toEqual(['turn-7', 'turn-8', 'turn-9']);
   });
 
   it('respects the character budget', () => {

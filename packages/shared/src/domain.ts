@@ -129,10 +129,19 @@ export type Message = z.infer<typeof messageSchema>;
 export const conversationModeSchema = z.enum(['chat', 'joke_battle', 'roast_me', 'would_you_rather', 'story_builder']);
 export type ConversationMode = z.infer<typeof conversationModeSchema>;
 
+export const conversationGameSchema = z
+  .object({
+    round: z.number().int().nonnegative(),
+    maxRounds: z.number().int().positive().nullable(),
+    active: z.boolean(),
+  })
+  .nullable();
+
 export const conversationSchema = z.object({
   id: uuid,
   title: z.string(),
   mode: conversationModeSchema,
+  game: conversationGameSchema,
   comedyStyle: comedyStyleSchema,
   lastMessagePreview: z.string().nullable(),
   createdAt: isoDate,
@@ -237,3 +246,6 @@ export const updateConversationSchema = z.object({
   title: z.string().trim().min(1).max(120),
 });
 export type UpdateConversation = z.infer<typeof updateConversationSchema>;
+
+export const gameActionSchema = z.object({ action: z.enum(['end', 'restart']) });
+export type GameAction = z.infer<typeof gameActionSchema>;

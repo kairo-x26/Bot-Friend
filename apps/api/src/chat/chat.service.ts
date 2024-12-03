@@ -18,6 +18,7 @@ import {
   type MessageRow,
 } from '../db/schema.js';
 import { BLOCKED_OUTPUT_MESSAGE, SafetyService, type InputVerdict } from '../safety/safety.service.js';
+import { advanceGame, effectiveMode, isFinalRound, readGameState } from '../games/game-engine.js';
 import { UsersService } from '../users/users.service.js';
 import { InflightRegistry } from './inflight.js';
 import type { EventSink } from './stream-sink.js';
@@ -90,6 +91,8 @@ export class ChatService {
       return;
     }
     const serious = verdict.serious;
+    const mode = effectiveMode(conversation);
+    const game = readGameState(conversation);
 
     // now() is fixed for a whole transaction, so give rows explicit, strictly increasing times.
     const now = Date.now();
@@ -149,8 +152,10 @@ export class ChatService {
         {
           preferences: prefs,
           style,
-          mode: conversation.mode,
+          mode,
           history,
+          gameRound: mode !== 'chat' && game ? game.round + 1 : undefined,
+          finalRound: mode !== 'chat' && isFinalRound(game),
           userMessage: body.content,
           serious,
           humorIntent: serious ? null : detectHumorIntent(body.content),
@@ -203,9 +208,12 @@ export class ChatService {
         return;
       }
 
+      const nextGame =
+        mode !== 'chat' && game ? (serious ? { ...game, active: false } : advanceGame(mode, game, content)) : null;
       const suggestions = suggestFollowUps({
         style,
-        mode: conversation.mode,
+        mode,
+        gameOver: Boolean(nextGame && !nextGame.active),
         userText: body.content,
         serious,
         roastOptIn: prefs.roastOptIn,
@@ -233,7 +241,7 @@ export class ChatService {
             updatedAt: new Date(),
             ...this.autoTitle(conversation, body.content),
             // A serious moment ends any running game (Workflow C).
-            ...(serious && conversation.gameState ? { gameState: { ...conversation.gameState, active: false } } : {}),
+            ...(nextGame ? { gameState: nextGame } : {}),
           })
           .where(eq(conversations.id, conversation.id));
         return row!;
@@ -241,7 +249,7 @@ export class ChatService {
 
       sink.send({ type: 'message.completed', message: toMessageDto(completed) });
       this.analytics.track('reply_completed', userId, {
-        mode: conversation.mode,
+        mode,
         style,
         serious,
         latencyMs: Date.now() - startedAt,

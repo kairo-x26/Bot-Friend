@@ -12,8 +12,9 @@ import { ApiError } from '../common/api-error.js';
 import { decodeCursor, encodeCursor } from '../common/cursor.js';
 import { DB, type Db, type DbOrTx } from '../db/database.js';
 import { conversations, messages, type ConversationRow } from '../db/schema.js';
+import { initialGameState, isGame, opener } from '../games/game-engine.js';
 import { UsersService } from '../users/users.service.js';
-import { MODE_TITLES, toConversationDto, toMessageDto } from './conversations.mapper.js';
+import { MODE_TITLES, preview, toConversationDto, toMessageDto } from './conversations.mapper.js';
 
 export const DEFAULT_BOT_PROFILE = 'bot-friend';
 const VISIBLE_ROLES = ['user', 'assistant'] as const;
@@ -31,20 +32,56 @@ export class ConversationsService {
     if (input.mode === 'roast_me' && !prefs.roastOptIn) {
       throw ApiError.forbidden('Turn on roasts in Customize before starting Roast Me.');
     }
-    const [row] = await this.db
-      .insert(conversations)
-      .values({
-        userId,
-        botProfileId: DEFAULT_BOT_PROFILE,
-        title: input.title ?? MODE_TITLES[input.mode],
-        titleIsAuto: !input.title,
-        mode: input.mode,
-        comedyStyle: prefs.comedyStyle,
-        gameState: input.mode === 'chat' ? null : { round: 0, active: true },
-      })
-      .returning();
-    if (input.mode !== 'chat') this.analytics.track('game_started', userId, { mode: input.mode });
-    return row!;
+    const intro = opener(input.mode, prefs.comedyStyle);
+    const row = await this.db.transaction(async (tx) => {
+      const [row] = await tx
+        .insert(conversations)
+        .values({
+          userId,
+          botProfileId: DEFAULT_BOT_PROFILE,
+          title: input.title ?? MODE_TITLES[input.mode],
+          titleIsAuto: !input.title,
+          mode: input.mode,
+          comedyStyle: prefs.comedyStyle,
+          gameState: initialGameState(input.mode),
+          lastMessagePreview: intro ? preview(intro) : null,
+        })
+        .returning();
+      // Games open with Bot-Friend's first move so the user knows how to play.
+      if (intro) await this.postOpener(tx, row!, intro);
+      return row!;
+    });
+    if (isGame(input.mode)) this.analytics.track('game_started', userId, { mode: input.mode });
+    return row;
+  }
+
+  /** End a running game (back to plain chat) or start it over. */
+  async gameAction(userId: string, id: string, action: 'end' | 'restart') {
+    const convo = await this.getOwned(userId, id);
+    if (!isGame(convo.mode)) throw ApiError.forbidden('This conversation is not a game');
+    const prefs = await this.users.preferences(userId);
+    const row = await this.db.transaction(async (tx) => {
+      const state = action === 'restart' ? initialGameState(convo.mode) : { ...(convo.gameState ?? {}), active: false };
+      const [row] = await tx
+        .update(conversations)
+        .set({ gameState: state, updatedAt: new Date() })
+        .where(eq(conversations.id, id))
+        .returning();
+      if (action === 'restart') await this.postOpener(tx, row!, opener(convo.mode, prefs.comedyStyle)!);
+      return row!;
+    });
+    return toConversationDto(row);
+  }
+
+  private async postOpener(tx: DbOrTx, convo: ConversationRow, text: string) {
+    await tx.insert(messages).values({
+      conversationId: convo.id,
+      userId: convo.userId,
+      role: 'assistant',
+      content: text,
+      status: 'completed',
+      promptVersion: 'opener',
+    });
   }
 
   /** Loads a conversation only if `userId` owns it. Others get the same 404 as a missing id. */

@@ -26,6 +26,7 @@ export interface PromptContext {
   serious?: boolean;
   humorIntent?: HumorIntent;
   gameRound?: number;
+  finalRound?: boolean;
 }
 
 export interface BuiltPrompt {
@@ -57,7 +58,11 @@ export function buildPrompt(ctx: PromptContext, budget: PromptBudget): BuiltProm
     if (boundaries) layers.push(boundaries);
 
     const mode = MODE_INSTRUCTIONS[ctx.mode];
-    if (mode) layers.push(mode + (ctx.gameRound !== undefined ? ` (This is round ${ctx.gameRound}.)` : ''));
+    if (mode) {
+      const round = ctx.gameRound !== undefined ? ` (This is round ${ctx.gameRound}.)` : '';
+      const final = ctx.finalRound ? ' This is the final round: wrap the game up now.' : '';
+      layers.push(mode + round + final);
+    }
 
     const roastAllowed = ctx.preferences.roastOptIn;
     if (ctx.mode === 'roast_me' && roastAllowed) layers.push(ROAST_RULES);
@@ -98,10 +103,8 @@ export function trimHistory(history: PromptMessage[], budget: PromptBudget, rese
     chars += turn.content.length;
     out.push(turn);
   }
-  out.reverse();
-  // Providers expect the conversation to start with a user turn.
-  while (out[0]?.role === 'assistant') out.shift();
-  return out;
+  // Assistant-first history is fine: game openers are assistant turns and must stay in context.
+  return out.reverse();
 }
 
 function sanitizeDataLine(text: string): string {

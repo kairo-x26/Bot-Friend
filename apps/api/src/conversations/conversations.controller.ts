@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query } from '@nestjs/common';
 import {
   createConversationSchema,
+  gameActionSchema,
   paginationQuerySchema,
   updateConversationSchema,
 } from '@bot-friend/shared';
@@ -39,6 +40,13 @@ export class ConversationsController {
   @HttpCode(204)
   async remove(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     await this.conversations.remove(user.id, assertUuid(id, 'Conversation'));
+  }
+
+  @Post(':id/game')
+  @HttpCode(200)
+  game(@CurrentUser() user: AuthUser, @Param('id') id: string, @Body() body: unknown) {
+    const { action } = parse(gameActionSchema, body);
+    return this.conversations.gameAction(user.id, assertUuid(id, 'Conversation'), action);
   }
 
   @Get(':id/messages')

@@ -1,11 +1,14 @@
 import type { Conversation, Message } from '@bot-friend/shared';
 import type { ConversationRow, MessageRow } from '../db/schema.js';
+import { readGameState } from '../games/game-engine.js';
 
 export function toConversationDto(row: ConversationRow): Conversation {
+  const game = readGameState(row);
   return {
     id: row.id,
     title: row.title,
     mode: row.mode,
+    game: game ? { round: game.round, maxRounds: game.maxRounds, active: game.active } : null,
     comedyStyle: row.comedyStyle,
     lastMessagePreview: row.lastMessagePreview,
     createdAt: row.createdAt.toISOString(),

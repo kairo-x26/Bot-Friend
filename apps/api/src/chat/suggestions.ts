@@ -6,6 +6,7 @@ interface SuggestionInput {
   userText: string;
   serious: boolean;
   roastOptIn: boolean;
+  gameOver?: boolean;
 }
 
 const STYLE_CHIPS: Record<ComedyStyle, string[]> = {
@@ -28,6 +29,8 @@ const MODE_CHIPS: Partial<Record<ConversationMode, string[]>> = {
  */
 export function suggestFollowUps(input: SuggestionInput): string[] {
   if (input.serious) return ['💬 Keep talking', '🫶 Something gentle', '📞 Support resources'];
+
+  if (input.gameOver) return ['🔁 Rematch', '💬 Just chat', '🎮 Another game'];
 
   const modeChips = MODE_CHIPS[input.mode];
   if (modeChips) return modeChips;
