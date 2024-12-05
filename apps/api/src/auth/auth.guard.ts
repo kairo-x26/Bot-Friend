@@ -39,9 +39,21 @@ export class AuthGuard implements CanActivate {
       throw ApiError.forbidden('This account is suspended. Contact support.');
     }
     req.user = user;
+    this.touch(user);
 
     const roles = this.reflector.getAllAndOverride<UserRole[] | undefined>(ROLES, targets);
     if (roles && !roles.includes(user.role)) throw ApiError.forbidden();
     return true;
+  }
+
+  /** Coarse last-seen tracking (at most every 10 minutes per user) for admin views and retention. */
+  private touch(user: AuthUser) {
+    const now = Date.now();
+    if (user.lastSeenAt && now - user.lastSeenAt.getTime() < 10 * 60_000) return;
+    void this.db
+      .update(users)
+      .set({ lastSeenAt: new Date(now) })
+      .where(eq(users.id, user.id))
+      .catch(() => undefined);
   }
 }

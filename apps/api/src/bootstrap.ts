@@ -1,9 +1,20 @@
 import 'reflect-metadata';
+import type { LogLevel } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { randomUUID } from 'node:crypto';
 import { AppModule, type AppModuleOptions } from './app.module.js';
 import { ErrorFilter } from './common/error.filter.js';
+
+const NEST_LEVELS: Record<string, LogLevel[] | false> = {
+  silent: false,
+  fatal: ['fatal'],
+  error: ['fatal', 'error'],
+  warn: ['fatal', 'error', 'warn'],
+  info: ['fatal', 'error', 'warn', 'log'],
+  debug: ['fatal', 'error', 'warn', 'log', 'debug'],
+  trace: ['fatal', 'error', 'warn', 'log', 'debug', 'verbose'],
+};
 
 const REQUEST_ID_RE = /^[A-Za-z0-9._-]{8,100}$/;
 
@@ -28,7 +39,7 @@ export async function createApp(options: AppModuleOptions): Promise<NestFastifyA
   });
 
   const app = await NestFactory.create<NestFastifyApplication>(AppModule.register(options), adapter, {
-    logger: config.env.LOG_LEVEL === 'silent' ? false : ['error', 'warn', 'log'],
+    logger: NEST_LEVELS[config.env.LOG_LEVEL] ?? ['error', 'warn', 'log'],
     bufferLogs: false,
     abortOnError: false,
   });
