@@ -1,4 +1,4 @@
-import type { SessionResponse } from '@bot-friend/shared';
+import type { Conversation, SessionResponse } from '@bot-friend/shared';
 import type { TestApp } from './app.js';
 
 type Method = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
@@ -64,5 +64,5 @@ export async function streamMessage(
 export async function newConversation(t: TestApp, token: string, body: object = {}) {
   const res = await call(t, 'POST', '/v1/conversations', { token, body });
   if (res.status !== 201) throw new Error(`create conversation failed: ${res.body}`);
-  return res.json as { id: string; title: string; mode: string; comedyStyle: string };
+  return res.json as Conversation;
 }
