@@ -122,6 +122,8 @@ export const messageSchema = z.object({
   status: messageStatusSchema,
   reaction: reactionSchema.nullable(),
   suggestions: z.array(z.string()).default([]),
+  /** Safety reply that should be shown with crisis/support resources. */
+  supportResources: z.boolean().default(false),
   createdAt: isoDate,
 });
 export type Message = z.infer<typeof messageSchema>;
@@ -170,7 +172,10 @@ export const messagePageSchema = pageSchema(messageSchema);
 export type MessagePage = z.infer<typeof messagePageSchema>;
 
 export const conversationDetailSchema = conversationSchema.extend({
+  /** The most recent messages, chronological. */
   messages: z.array(messageSchema),
+  /** Pass to GET /messages?cursor= to load the page before `messages`. */
+  olderMessagesCursor: z.string().nullable(),
 });
 export type ConversationDetail = z.infer<typeof conversationDetailSchema>;
 

@@ -51,7 +51,10 @@ export async function createApp(options: AppModuleOptions): Promise<NestFastifyA
 
   app.enableCors({
     origin: config.env.CORS_ORIGINS.length ? config.env.CORS_ORIGINS : !config.isProduction,
+    methods: ['GET', 'HEAD', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['authorization', 'content-type', 'accept', 'x-request-id'],
     exposedHeaders: ['x-request-id', 'retry-after'],
+    maxAge: 600,
   });
   app.useGlobalFilters(new ErrorFilter());
   app.enableShutdownHooks();

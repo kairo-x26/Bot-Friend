@@ -124,7 +124,7 @@ export class ConversationsService {
   async detail(userId: string, id: string): Promise<ConversationDetail> {
     const convo = await this.getOwned(userId, id);
     const page = await this.messages(userId, id, { limit: 30 });
-    return { ...toConversationDto(convo), messages: page.items };
+    return { ...toConversationDto(convo), messages: page.items, olderMessagesCursor: page.nextCursor };
   }
 
   /**

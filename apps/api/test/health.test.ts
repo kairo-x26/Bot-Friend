@@ -39,3 +39,16 @@ describe('AppConfig', () => {
     ).toThrow(/AUTH_DEV_LOGIN/);
   });
 });
+
+describe('CORS', () => {
+  it('allows PATCH and DELETE in preflight', async () => {
+    const res = await app.inject({
+      method: 'OPTIONS',
+      url: '/v1/me/preferences',
+      headers: { origin: 'http://localhost:8081', 'access-control-request-method': 'PATCH', 'access-control-request-headers': 'authorization,content-type' },
+    });
+    expect(res.statusCode).toBeLessThan(300);
+    expect(String(res.headers['access-control-allow-methods'])).toMatch(/PATCH/);
+    expect(String(res.headers['access-control-allow-methods'])).toMatch(/DELETE/);
+  });
+});

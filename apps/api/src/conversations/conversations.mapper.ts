@@ -25,6 +25,7 @@ export function toMessageDto(row: MessageRow): Message {
     status: row.status,
     reaction: row.reaction,
     suggestions: row.suggestions ?? [],
+    supportResources: row.errorCode === 'self_harm',
     createdAt: row.createdAt.toISOString(),
   };
 }
