@@ -19,7 +19,7 @@ export const GAMES: Record<GameId, GameInfo> = {
   joke_battle: {
     id: 'joke_battle',
     title: 'Joke Battle',
-    description: 'Trade jokes on a topic. Bot-Friend rates yours and fires back. Five rounds.',
+    description: 'Trade jokes on a topic. Bot-Friend rates yours and fires back.',
     emoji: '🎤',
     maxRounds: 5,
     requiresRoastOptIn: false,
