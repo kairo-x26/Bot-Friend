@@ -76,9 +76,10 @@ export class AuthService {
       this.assertUsable(existing);
       return existing;
     }
+    const devAdmin = provider === 'dev' && this.config.env.DEV_ADMIN_EMAILS.map((e) => e.toLowerCase()).includes(subject);
     const [created] = await tx
       .insert(users)
-      .values({ provider, providerSubject: subject, displayName: name, entitlement: 'free' })
+      .values({ provider, providerSubject: subject, displayName: name, entitlement: 'free', role: devAdmin ? 'admin' : 'user' })
       .returning();
     await tx.insert(userPreferences).values({ userId: created!.id });
     return created!;

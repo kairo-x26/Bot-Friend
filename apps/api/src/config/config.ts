@@ -31,6 +31,8 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32).default('dev-only-secret-change-me-dev-only-secret'),
   SESSION_TTL_HOURS: z.coerce.number().int().positive().default(24 * 30),
   AUTH_DEV_LOGIN: bool.default(false),
+  /** Dev-login emails that get the admin role on first sign-in (local moderation testing). */
+  DEV_ADMIN_EMAILS: csv,
   APPLE_CLIENT_IDS: csv,
   GOOGLE_CLIENT_IDS: csv,
 

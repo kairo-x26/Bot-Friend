@@ -59,6 +59,15 @@ describe('POST /v1/auth/session', () => {
     expect(old.status).toBe(401);
   });
 
+  it('bootstraps admins from DEV_ADMIN_EMAILS for local testing', async () => {
+    const t2 = await createTestApp({ DEV_ADMIN_EMAILS: 'Boss@Example.com' });
+    const boss = await devLogin(t2, 'boss@example.com');
+    const other = await devLogin(t2, 'worker@example.com');
+    expect(boss.user.role).toBe('admin');
+    expect(other.user.role).toBe('user');
+    await t2.close();
+  });
+
   it('rejects dev login when disabled', async () => {
     const t2 = await createTestApp({ AUTH_DEV_LOGIN: 'false' });
     const res = await call(t2, 'POST', '/v1/auth/session', {
