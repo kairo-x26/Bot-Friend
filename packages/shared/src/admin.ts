@@ -97,6 +97,9 @@ export const adminMetricsSchema = z.object({
     failedReplies: z.number().int(),
     estimatedCostUsd: z.number(),
     p95LatencyMs: z.number().int().nullable(),
+    /** Share of rated replies with a positive reaction (PRD KPI: ≥ 80%). */
+    positiveRatingShare: z.number().min(0).max(1).nullable(),
+    ratedReplies: z.number().int(),
   }),
   failedDeletionJobs: z.number().int(),
 });

@@ -25,6 +25,7 @@ export type AnalyticsEventName =
   | 'reply_completed'
   | 'reply_failed'
   | 'reply_blocked'
+  | 'reply_rated'
   | 'game_started'
   | 'report_submitted'
   | 'subscription_activated'

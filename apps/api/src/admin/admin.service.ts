@@ -217,7 +217,7 @@ export class AdminService {
 
   async metrics(): Promise<AdminMetrics> {
     const since = new Date(Date.now() - 86_400_000);
-    const [[open], [urgent], [msgs], [active], [blocked], [failed], [cost], [failedJobs]] = await Promise.all([
+    const [[open], [urgent], [msgs], [active], [blocked], [failed], [cost], [failedJobs], [ratings]] = await Promise.all([
       this.db.select({ n: count() }).from(contentReports).where(inArray(contentReports.status, ['open', 'triaged'])),
       this.db
         .select({ n: count() })
@@ -244,6 +244,13 @@ export class AdminService {
         .from(usageRecords)
         .where(and(gte(usageRecords.createdAt, since), eq(usageRecords.kind, 'chat'))),
       this.db.select({ n: count() }).from(deletionJobs).where(eq(deletionJobs.status, 'failed')),
+      this.db
+        .select({
+          rated: count(),
+          positive: sql<number>`count(*) filter (where ${messages.reaction} in ('laugh', 'love', 'up'))`.mapWith(Number),
+        })
+        .from(messages)
+        .where(and(eq(messages.role, 'assistant'), sql`${messages.reaction} is not null`, gte(messages.updatedAt, since))),
     ]);
     return {
       openReports: { total: open?.n ?? 0, urgent: urgent?.n ?? 0 },
@@ -254,6 +261,8 @@ export class AdminService {
         failedReplies: failed?.n ?? 0,
         estimatedCostUsd: Math.round((cost?.micros ?? 0) / 10_000) / 100,
         p95LatencyMs: cost?.p95 == null ? null : Math.round(Number(cost.p95)),
+        ratedReplies: ratings?.rated ?? 0,
+        positiveRatingShare: ratings?.rated ? Math.round((ratings.positive / ratings.rated) * 100) / 100 : null,
       },
       failedDeletionJobs: failedJobs?.n ?? 0,
     };

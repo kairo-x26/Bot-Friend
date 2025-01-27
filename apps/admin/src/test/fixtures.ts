@@ -50,6 +50,6 @@ export const reportDetail = (over: Partial<AdminReportDetail> = {}): AdminReport
 
 export const metrics: AdminMetrics = {
   openReports: { total: 3, urgent: 1 },
-  last24h: { messages: 120, activeUsers: 14, blockedReplies: 2, failedReplies: 1, estimatedCostUsd: 0.42, p95LatencyMs: 2300 },
+  last24h: { messages: 120, activeUsers: 14, blockedReplies: 2, failedReplies: 1, estimatedCostUsd: 0.42, p95LatencyMs: 2300, positiveRatingShare: 0.86, ratedReplies: 22 },
   failedDeletionJobs: 0,
 };

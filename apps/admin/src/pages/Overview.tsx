@@ -31,6 +31,11 @@ export function Overview() {
           <Stat label="Failed replies" value={m.last24h.failedReplies} alert={m.last24h.failedReplies > 20} />
           <Stat label="p95 reply time" value={m.last24h.p95LatencyMs === null ? '—' : `${(m.last24h.p95LatencyMs / 1000).toFixed(1)}s`} />
           <Stat label="Estimated AI spend" value={`$${m.last24h.estimatedCostUsd.toFixed(2)}`} />
+          <Stat
+            label={`Positive ratings (${m.last24h.ratedReplies} rated)`}
+            value={m.last24h.positiveRatingShare === null ? '—' : `${Math.round(m.last24h.positiveRatingShare * 100)}%`}
+            alert={m.last24h.positiveRatingShare !== null && m.last24h.positiveRatingShare < 0.8}
+          />
           <Stat label="Failed deletion jobs" value={m.failedDeletionJobs} alert={m.failedDeletionJobs > 0} />
         </div>
       ) : metrics.isLoading ? (

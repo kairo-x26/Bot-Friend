@@ -42,7 +42,7 @@ async function mockApi(page: Page) {
     if (key === 'GET /v1/admin/metrics')
       return json(route, {
         openReports: { total: 1, urgent: 1 },
-        last24h: { messages: 42, activeUsers: 7, blockedReplies: 1, failedReplies: 0, estimatedCostUsd: 0.12, p95LatencyMs: 1800 },
+        last24h: { messages: 42, activeUsers: 7, blockedReplies: 1, failedReplies: 0, estimatedCostUsd: 0.12, p95LatencyMs: 1800, positiveRatingShare: 0.9, ratedReplies: 10 },
         failedDeletionJobs: 0,
       });
     if (key === 'GET /v1/admin/reports') return json(route, { items: [current], nextCursor: null });

@@ -17,6 +17,7 @@ import { ChatModule } from './chat/chat.module.js';
 import { AppConfig } from './config/config.js';
 import { ConversationsModule } from './conversations/conversations.module.js';
 import { DatabaseModule } from './db/database.module.js';
+import { FeedbackModule } from './feedback/feedback.module.js';
 import { HealthController } from './health/health.controller.js';
 import { LimitsModule } from './limits/limits.module.js';
 import { ReportsModule } from './reports/reports.module.js';
@@ -71,6 +72,7 @@ export class AppModule {
         ReportsModule,
         AccountModule,
         AdminModule,
+        FeedbackModule,
       ],
       controllers: [HealthController],
       providers: [{ provide: AppConfig, useValue: config }, ...integrations],
