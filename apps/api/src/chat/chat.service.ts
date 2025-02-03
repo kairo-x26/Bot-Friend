@@ -18,6 +18,7 @@ import {
   type MessageRow,
 } from '../db/schema.js';
 import { BLOCKED_OUTPUT_MESSAGE, SafetyService, type InputVerdict } from '../safety/safety.service.js';
+import { MemoryService } from '../memory/memory.service.js';
 import { advanceGame, effectiveMode, isFinalRound, readGameState } from '../games/game-engine.js';
 import { UsersService } from '../users/users.service.js';
 import { InflightRegistry } from './inflight.js';
@@ -42,6 +43,7 @@ export class ChatService {
     private readonly inflight: InflightRegistry,
     private readonly safety: SafetyService,
     private readonly analytics: AnalyticsService,
+    private readonly memory: MemoryService,
   ) {}
 
   /**
@@ -148,9 +150,11 @@ export class ChatService {
         .filter((m) => m.id !== userMessage.id)
         .map<PromptMessage>((m) => ({ role: m.role as PromptMessage['role'], content: m.content }));
 
+      const memories = await this.memory.forPrompt(userId, prefs.memoryEnabled);
       const prompt = buildPrompt(
         {
           preferences: prefs,
+          memories,
           style,
           mode,
           history,
@@ -248,6 +252,7 @@ export class ChatService {
       });
 
       sink.send({ type: 'message.completed', message: toMessageDto(completed) });
+      if (!serious) void this.memory.suggestFrom(userId, prefs.memoryEnabled, body.content, userMessage.id);
       this.analytics.track('reply_completed', userId, {
         mode,
         style,

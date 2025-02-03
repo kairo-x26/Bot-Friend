@@ -19,6 +19,7 @@ import { ConversationsModule } from './conversations/conversations.module.js';
 import { DatabaseModule } from './db/database.module.js';
 import { FeedbackModule } from './feedback/feedback.module.js';
 import { HealthController } from './health/health.controller.js';
+import { MemoryModule } from './memory/memory.module.js';
 import { LimitsModule } from './limits/limits.module.js';
 import { ReportsModule } from './reports/reports.module.js';
 import { UsersModule } from './users/users.module.js';
@@ -73,6 +74,7 @@ export class AppModule {
         AccountModule,
         AdminModule,
         FeedbackModule,
+        MemoryModule,
       ],
       controllers: [HealthController],
       providers: [{ provide: AppConfig, useValue: config }, ...integrations],
