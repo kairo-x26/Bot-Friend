@@ -22,6 +22,7 @@ import { HealthController } from './health/health.controller.js';
 import { MemoryModule } from './memory/memory.module.js';
 import { LimitsModule } from './limits/limits.module.js';
 import { ReportsModule } from './reports/reports.module.js';
+import { SearchModule } from './search/search.module.js';
 import { UsersModule } from './users/users.module.js';
 
 /** Swap external integrations for fakes in tests or local demos. */
@@ -75,6 +76,7 @@ export class AppModule {
         AdminModule,
         FeedbackModule,
         MemoryModule,
+        SearchModule,
       ],
       controllers: [HealthController],
       providers: [{ provide: AppConfig, useValue: config }, ...integrations],
