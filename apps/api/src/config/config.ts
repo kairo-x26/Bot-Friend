@@ -62,6 +62,10 @@ const envSchema = z.object({
   ANALYTICS_RETENTION_DAYS: z.coerce.number().int().positive().default(90),
   RETENTION_SWEEP_MINUTES: z.coerce.number().int().nonnegative().default(60),
 
+  PUSH_PROVIDER: z.enum(['expo', 'none']).default('none'),
+  EXPO_ACCESS_TOKEN: z.string().optional(),
+  REMINDER_SWEEP_MINUTES: z.coerce.number().int().nonnegative().default(15),
+
   FEATURE_MEMORY: bool.default(true),
   FEATURE_VOICE: bool.default(false),
   FEATURE_BILLING: bool.default(false),

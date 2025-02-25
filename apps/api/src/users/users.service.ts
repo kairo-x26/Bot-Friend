@@ -26,6 +26,11 @@ export class UsersService {
     await this.preferences(userId);
     const values: Partial<typeof userPreferences.$inferInsert> = { ...patch, updatedAt: new Date() };
     if (patch.humorBoundaries) values.humorBoundaries = [...new Set(patch.humorBoundaries)];
+    // Turning reminders on without an hour picks early evening (UTC) rather than leaving them inert.
+    if (patch.remindersEnabled && patch.reminderHour === undefined) {
+      const current = await this.preferences(userId);
+      if (current.reminderHour === null) values.reminderHour = 18;
+    }
     const [row] = await this.db
       .update(userPreferences)
       .set(values)

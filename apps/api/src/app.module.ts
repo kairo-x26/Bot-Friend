@@ -21,6 +21,8 @@ import { FeedbackModule } from './feedback/feedback.module.js';
 import { HealthController } from './health/health.controller.js';
 import { MemoryModule } from './memory/memory.module.js';
 import { LimitsModule } from './limits/limits.module.js';
+import { ExpoPushProvider, PUSH_PROVIDER, RecordingPushProvider, type PushProvider } from './reminders/push.provider.js';
+import { RemindersModule } from './reminders/reminders.module.js';
 import { ReportsModule } from './reports/reports.module.js';
 import { SearchModule } from './search/search.module.js';
 import { UsersModule } from './users/users.module.js';
@@ -30,6 +32,7 @@ export interface AppOverrides {
   idTokenVerifier?: IdTokenVerifier;
   aiProvider?: AiProvider;
   moderation?: ModerationProvider;
+  push?: PushProvider;
 }
 
 export interface AppModuleOptions {
@@ -59,6 +62,12 @@ export class AppModule {
           overrides.moderation ??
           (config.env.AI_PROVIDER === 'openai' ? new OpenAiModeration(config) : new LocalModeration()),
       },
+      {
+        provide: PUSH_PROVIDER,
+        useValue:
+          overrides.push ??
+          (config.env.PUSH_PROVIDER === 'expo' ? new ExpoPushProvider(config.env.EXPO_ACCESS_TOKEN) : new RecordingPushProvider()),
+      },
     ];
     return {
       module: AppModule,
@@ -77,6 +86,7 @@ export class AppModule {
         FeedbackModule,
         MemoryModule,
         SearchModule,
+        RemindersModule,
       ],
       controllers: [HealthController],
       providers: [{ provide: AppConfig, useValue: config }, ...integrations],

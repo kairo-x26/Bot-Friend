@@ -66,6 +66,7 @@ export const userPreferences = pgTable('user_preferences', {
   memoryEnabled: boolean('memory_enabled').notNull().default(false),
   remindersEnabled: boolean('reminders_enabled').notNull().default(false),
   reminderHour: smallint('reminder_hour'),
+  lastReminderAt: ts('last_reminder_at'),
   updatedAt: ts('updated_at').notNull().defaultNow(),
 });
 
