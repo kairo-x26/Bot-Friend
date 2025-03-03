@@ -12,6 +12,8 @@ import { AccountModule } from './account/account.module.js';
 import { AdminModule } from './admin/admin.module.js';
 import { AuditModule } from './audit/audit.module.js';
 import { AuthModule } from './auth/auth.module.js';
+import { BillingModule } from './billing/billing.module.js';
+import { DefaultStoreVerifier, STORE_VERIFIER, type StoreVerifier } from './billing/store-verifier.js';
 import { ID_TOKEN_VERIFIER, OidcIdTokenVerifier, type IdTokenVerifier } from './auth/id-token-verifier.js';
 import { ChatModule } from './chat/chat.module.js';
 import { AppConfig } from './config/config.js';
@@ -33,6 +35,7 @@ export interface AppOverrides {
   aiProvider?: AiProvider;
   moderation?: ModerationProvider;
   push?: PushProvider;
+  storeVerifier?: StoreVerifier;
 }
 
 export interface AppModuleOptions {
@@ -68,6 +71,7 @@ export class AppModule {
           overrides.push ??
           (config.env.PUSH_PROVIDER === 'expo' ? new ExpoPushProvider(config.env.EXPO_ACCESS_TOKEN) : new RecordingPushProvider()),
       },
+      { provide: STORE_VERIFIER, useValue: overrides.storeVerifier ?? new DefaultStoreVerifier(config) },
     ];
     return {
       module: AppModule,
@@ -87,6 +91,7 @@ export class AppModule {
         MemoryModule,
         SearchModule,
         RemindersModule,
+        BillingModule,
       ],
       controllers: [HealthController],
       providers: [{ provide: AppConfig, useValue: config }, ...integrations],

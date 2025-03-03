@@ -70,6 +70,12 @@ const envSchema = z.object({
   FEATURE_VOICE: bool.default(false),
   FEATURE_BILLING: bool.default(false),
   BILLING_WEBHOOK_SECRET: z.string().optional(),
+  APPLE_BUNDLE_ID: z.string().default('app.botfriend.mobile'),
+  /** SHA-256 fingerprints (hex, no colons) of trusted Apple root certs. Defaults to Apple Root CA - G3. */
+  APPLE_ROOT_FINGERPRINTS: csv,
+  GOOGLE_PLAY_PACKAGE: z.string().default('app.botfriend.mobile'),
+  /** Service account JSON (inline) with access to the Play Developer API. */
+  GOOGLE_PLAY_SERVICE_ACCOUNT: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

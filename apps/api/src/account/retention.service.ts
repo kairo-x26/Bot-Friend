@@ -3,6 +3,7 @@ import { and, eq, lt } from 'drizzle-orm';
 import { AppConfig } from '../config/config.js';
 import { DB, type Db } from '../db/database.js';
 import { analyticsEvents, messages, users } from '../db/schema.js';
+import { BillingService } from '../billing/billing.service.js';
 import { DeletionService } from './deletion.service.js';
 
 export interface SweepResult {
@@ -10,6 +11,7 @@ export interface SweepResult {
   analyticsPurged: number;
   staleStreamsFailed: number;
   deletionJobsRetried: number;
+  subscriptionsExpired: number;
 }
 
 /** Periodic housekeeping for the retention schedule in PRD §9. */
@@ -22,6 +24,7 @@ export class RetentionService implements OnApplicationBootstrap, OnApplicationSh
     @Inject(DB) private readonly db: Db,
     private readonly config: AppConfig,
     private readonly deletion: DeletionService,
+    private readonly billing: BillingService,
   ) {}
 
   onApplicationBootstrap() {
@@ -58,12 +61,14 @@ export class RetentionService implements OnApplicationBootstrap, OnApplicationSh
       .where(and(eq(messages.status, 'streaming'), lt(messages.createdAt, streamCutoff)))
       .returning({ id: messages.id });
     const retried = await this.deletion.retryPending();
+    const expired = await this.billing.expireLapsed(now);
 
     const result = {
       guestsPurged: guests.length,
       analyticsPurged: analytics.length,
       staleStreamsFailed: stale.length,
       deletionJobsRetried: retried,
+      subscriptionsExpired: expired,
     };
     if (Object.values(result).some((n) => n > 0)) this.logger.log(`Retention sweep: ${JSON.stringify(result)}`);
     return result;
