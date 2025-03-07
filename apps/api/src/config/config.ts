@@ -42,6 +42,8 @@ const envSchema = z.object({
   OPENAI_CHAT_MODEL: z.string().default('gpt-5-mini'),
   OPENAI_MODERATION_MODEL: z.string().default('omni-moderation-latest'),
   OPENAI_REALTIME_MODEL: z.string().default('gpt-realtime'),
+  OPENAI_REALTIME_VOICE: z.string().default('marin'),
+  VOICE_SESSION_SECONDS: z.coerce.number().int().min(10).max(7200).default(300),
   AI_MAX_OUTPUT_TOKENS: z.coerce.number().int().positive().default(400),
   AI_HISTORY_MESSAGES: z.coerce.number().int().positive().default(20),
   AI_HISTORY_CHAR_BUDGET: z.coerce.number().int().positive().default(12_000),

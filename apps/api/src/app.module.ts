@@ -28,6 +28,8 @@ import { RemindersModule } from './reminders/reminders.module.js';
 import { ReportsModule } from './reports/reports.module.js';
 import { SearchModule } from './search/search.module.js';
 import { UsersModule } from './users/users.module.js';
+import { MockRealtimeProvider, OpenAiRealtimeProvider, REALTIME_PROVIDER, type RealtimeProvider } from './voice/realtime.provider.js';
+import { VoiceModule } from './voice/voice.module.js';
 
 /** Swap external integrations for fakes in tests or local demos. */
 export interface AppOverrides {
@@ -36,6 +38,7 @@ export interface AppOverrides {
   moderation?: ModerationProvider;
   push?: PushProvider;
   storeVerifier?: StoreVerifier;
+  realtime?: RealtimeProvider;
 }
 
 export interface AppModuleOptions {
@@ -72,6 +75,10 @@ export class AppModule {
           (config.env.PUSH_PROVIDER === 'expo' ? new ExpoPushProvider(config.env.EXPO_ACCESS_TOKEN) : new RecordingPushProvider()),
       },
       { provide: STORE_VERIFIER, useValue: overrides.storeVerifier ?? new DefaultStoreVerifier(config) },
+      {
+        provide: REALTIME_PROVIDER,
+        useValue: overrides.realtime ?? (config.env.AI_PROVIDER === 'openai' ? new OpenAiRealtimeProvider(config) : new MockRealtimeProvider()),
+      },
     ];
     return {
       module: AppModule,
@@ -92,6 +99,7 @@ export class AppModule {
         SearchModule,
         RemindersModule,
         BillingModule,
+        VoiceModule,
       ],
       controllers: [HealthController],
       providers: [{ provide: AppConfig, useValue: config }, ...integrations],
