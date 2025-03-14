@@ -23,7 +23,8 @@ export type IconName =
   | 'heart'
   | 'brain'
   | 'download'
-  | 'bell';
+  | 'bell'
+  | 'edit';
 
 interface IconProps {
   name: IconName;
@@ -88,6 +89,7 @@ export function Icon({ name, size = 24, color, strokeWidth = 2 }: IconProps) {
       {name === 'heart' && <Path {...common} d="M12 19s-7-4.4-7-9.5A3.9 3.9 0 0 1 12 7.2a3.9 3.9 0 0 1 7 2.3C19 14.6 12 19 12 19Z" />}
       {name === 'brain' && <Path {...common} d="M9.5 5.5a3 3 0 0 0-3 3 3 3 0 0 0-1 5.5 3 3 0 0 0 4 4.5V5.5Zm5 0a3 3 0 0 1 3 3 3 3 0 0 1 1 5.5 3 3 0 0 1-4 4.5V5.5Z" />}
       {name === 'download' && <Path {...common} d="M12 4.5v10m0 0-4-4m4 4 4-4M5.5 19h13" />}
+      {name === 'edit' && <Path {...common} d="M5 19h3.5L18 9.5 14.5 6 5 15.5V19ZM13 7.5l3.5 3.5" />}
       {name === 'bell' && <Path {...common} d="M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 1.5H5l1.5-1.5ZM10 20a2 2 0 0 0 4 0" />}
     </Svg>
   );

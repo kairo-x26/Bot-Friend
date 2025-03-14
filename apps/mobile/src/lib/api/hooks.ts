@@ -1,5 +1,12 @@
 import type {
   AccountDeletionResponse,
+  FeatureFlags,
+  Memory,
+  MemoryList,
+  SearchResult,
+  SubscriptionStatus,
+  VerifyPurchase,
+  VoiceSession,
   Conversation,
   ConversationDetail,
   ConversationPage,
@@ -27,6 +34,10 @@ export const qk = {
   conversations: ['conversations'] as const,
   conversation: (id: string) => ['conversation', id] as const,
   messages: (id: string) => ['messages', id] as const,
+  features: ['features'] as const,
+  memories: ['memories'] as const,
+  search: (q: string) => ['search', q] as const,
+  subscription: ['subscription'] as const,
 };
 
 export function createSession(req: CreateSessionRequest) {
@@ -154,4 +165,60 @@ export function touchConversation(qc: QueryClient, id: string) {
   void qc.invalidateQueries({ queryKey: qk.conversations });
   void qc.invalidateQueries({ queryKey: qk.usage });
   void qc.invalidateQueries({ queryKey: qk.conversation(id) });
+}
+
+export function useFeatures() {
+  return useQuery({
+    queryKey: qk.features,
+    queryFn: () => api<FeatureFlags>('GET', '/v1/features', undefined, { auth: false }),
+    staleTime: 5 * 60_000,
+  });
+}
+
+export function useMemories() {
+  return useQuery({ queryKey: qk.memories, queryFn: () => api<MemoryList>('GET', '/v1/memories') });
+}
+
+export function useMemoryMutations() {
+  const qc = useQueryClient();
+  const done = () => qc.invalidateQueries({ queryKey: qk.memories });
+  return {
+    add: useMutation({ mutationFn: (content: string) => api<Memory>('POST', '/v1/memories', { content }), onSuccess: done }),
+    approve: useMutation({ mutationFn: (id: string) => api<Memory>('PATCH', `/v1/memories/${id}`, { status: 'approved' }), onSuccess: done }),
+    edit: useMutation({
+      mutationFn: ({ id, content }: { id: string; content: string }) => api<Memory>('PATCH', `/v1/memories/${id}`, { content }),
+      onSuccess: done,
+    }),
+    remove: useMutation({ mutationFn: (id: string) => api<void>('DELETE', `/v1/memories/${id}`), onSuccess: done }),
+    eraseAll: useMutation({ mutationFn: () => api<{ deleted: number }>('DELETE', '/v1/memories'), onSuccess: done }),
+  };
+}
+
+export function useSearch(q: string) {
+  const term = q.trim();
+  return useQuery({
+    queryKey: qk.search(term),
+    enabled: term.length >= 2,
+    queryFn: () => api<SearchResult>('GET', `/v1/search?q=${encodeURIComponent(term)}`),
+    placeholderData: (prev) => prev,
+  });
+}
+
+export function useSubscription() {
+  return useQuery({ queryKey: qk.subscription, queryFn: () => api<SubscriptionStatus>('GET', '/v1/billing/subscription') });
+}
+
+export function useVerifyPurchase() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: VerifyPurchase) => api<SubscriptionStatus>('POST', '/v1/billing/verify', body),
+    onSuccess: (data) => {
+      qc.setQueryData(qk.subscription, data);
+      void qc.invalidateQueries({ queryKey: qk.usage });
+    },
+  });
+}
+
+export function createVoiceSession() {
+  return api<VoiceSession>('POST', '/v1/voice/session');
 }
