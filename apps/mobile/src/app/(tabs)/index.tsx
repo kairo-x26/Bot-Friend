@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Composer } from '@/components/chat/Composer';
 import { Mascot } from '@/components/mascot/Mascot';
 import { Starfield } from '@/components/mascot/Starfield';
-import { Chip, Tactile, Text } from '@/components/ui';
+import { Chip, IconButton, Tactile, Text } from '@/components/ui';
 import { ApiClientError } from '@/lib/api/client';
 import { useConversations, useCreateConversation } from '@/lib/api/hooks';
 import { greeting, STYLE_MOOD } from '@/lib/personality';
@@ -49,10 +49,13 @@ export default function Home() {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.space[4], paddingTop: t.space[4] }}>
         <Mascot size={104} mood={STYLE_MOOD[prefs.comedyStyle]} color={prefs.mascotColor} interactive testID="home-mascot" />
         <View style={{ flex: 1 }}>
-          <Text tone="muted" weight="medium">
-            {greeting()}
-            {user?.displayName ? `, ${user.displayName}` : ''}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text tone="muted" weight="medium" style={{ flex: 1 }}>
+              {greeting()}
+              {user?.displayName ? `, ${user.displayName}` : ''}
+            </Text>
+            {items.length > 0 ? <IconButton icon="search" label="Search chats" size={40} onPress={() => router.push('/search')} testID="home-search" /> : null}
+          </View>
           <Text variant="title" accessibilityRole="header" style={{ marginTop: 2 }}>
             What are we getting into?
           </Text>
