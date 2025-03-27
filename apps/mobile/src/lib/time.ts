@@ -11,3 +11,12 @@ export function relativeTime(iso: string, now = Date.now()): string {
   if (hours < 24 * 6) return d.toLocaleDateString('en-US', { weekday: 'short' });
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
+
+/** Local hour (0-23) → the UTC hour the server schedules against. */
+export function localHourToUtc(hour: number, offsetMinutes = new Date().getTimezoneOffset()): number {
+  return (((hour + offsetMinutes / 60) % 24) + 24) % 24 | 0;
+}
+
+export function utcHourToLocal(hour: number, offsetMinutes = new Date().getTimezoneOffset()): number {
+  return (((hour - offsetMinutes / 60) % 24) + 24) % 24 | 0;
+}

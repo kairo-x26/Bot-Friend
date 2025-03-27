@@ -41,9 +41,14 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 160,
           "backgroundColor": "#F6F3FF",
-          "dark": { "backgroundColor": "#171526" }
+          "dark": {
+            "backgroundColor": "#171526"
+          }
         }
-      ]
+      ],
+      "expo-sharing",
+      "expo-iap",
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true

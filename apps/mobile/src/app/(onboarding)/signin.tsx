@@ -8,6 +8,7 @@ import { Button, IconButton, Text } from '@/components/ui';
 import { GoogleSignInButton, googleEnabled } from '@/components/auth/GoogleSignInButton';
 import { ApiClientError, api } from '@/lib/api/client';
 import { createSession } from '@/lib/api/hooks';
+import { config } from '@/lib/config';
 import { usePrefs } from '@/lib/prefs';
 import { useSession } from '@/lib/session';
 import { useTheme } from '@/theme/theme';
@@ -114,7 +115,7 @@ export default function SignIn() {
             onError={() => setError('Google sign-in didn’t finish. Try again.')}
           />
         ) : null}
-        {__DEV__ ? (
+        {config.devLogin ? (
           <View style={{ flexDirection: 'row', gap: t.space[2] }}>
             <TextInput
               value={devEmail}

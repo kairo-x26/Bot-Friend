@@ -1,11 +1,15 @@
 import Constants from 'expo-constants';
 import { useState } from 'react';
 import { Platform, View } from 'react-native';
+import { router } from 'expo-router';
 import { Mascot } from '@/components/mascot/Mascot';
 import { Button, Divider, ListRow, Screen, Section, Segmented, Sheet, Text, Toggle } from '@/components/ui';
 import { ApiClientError } from '@/lib/api/client';
-import { useDeleteAccount, useUpdatePreferences, useUsage } from '@/lib/api/hooks';
+import { useDeleteAccount, useFeatures, useUpdatePreferences, useUsage } from '@/lib/api/hooks';
+import { downloadMyData } from '@/lib/exportData';
 import { usePrefs } from '@/lib/prefs';
+import { registerForReminders } from '@/lib/push';
+import { localHourToUtc, utcHourToLocal } from '@/lib/time';
 import { useSession } from '@/lib/session';
 import { useTheme } from '@/theme/theme';
 import { useQueryClient } from '@tanstack/react-query';
@@ -18,8 +22,44 @@ export default function Profile() {
   const update = useUpdatePreferences();
   const usage = useUsage();
   const deleteAccount = useDeleteAccount();
+  const features = useFeatures();
   const [deleteStep, setDeleteStep] = useState<0 | 1 | 2>(0);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const REMINDER_TIMES = [
+    { value: '9', label: 'Morning' },
+    { value: '14', label: 'Afternoon' },
+    { value: '19', label: 'Evening' },
+  ];
+  const localReminder = prefs.reminderHour === null ? '19' : String(utcHourToLocal(prefs.reminderHour));
+  const reminderChoice = REMINDER_TIMES.some((o) => o.value === localReminder) ? localReminder : '19';
+
+  async function toggleReminders(on: boolean) {
+    setNotice(null);
+    if (on) {
+      const res = await registerForReminders().catch(() => 'unsupported' as const);
+      if (res === 'denied') {
+        setNotice('Notifications are off for Bot-Friend in your phone settings.');
+        return;
+      }
+      if (res === 'unsupported') setNotice('Reminders arrive on your phone once the app is installed there.');
+    }
+    update.mutate({ remindersEnabled: on, reminderHour: localHourToUtc(Number(reminderChoice)) });
+  }
+
+  async function exportData() {
+    setExporting(true);
+    setNotice(null);
+    try {
+      await downloadMyData();
+    } catch (err) {
+      setNotice(err instanceof ApiClientError ? err.message : 'Download didn’t start. Try again.');
+    } finally {
+      setExporting(false);
+    }
+  }
   const user = session.user;
   const guest = user?.isGuest ?? false;
 
@@ -79,6 +119,16 @@ export default function Profile() {
         </View>
       ) : null}
 
+      {!guest && features.data?.billing ? (
+        <ListRow
+          icon="sparkle"
+          label={usage.data?.entitlement === 'premium' ? 'Premium' : 'Get Premium'}
+          detail={usage.data?.entitlement === 'premium' ? 'Thanks for your support' : 'More messages a day and early features'}
+          onPress={() => router.push('/upgrade')}
+          testID="profile-upgrade"
+        />
+      ) : null}
+
       {guest ? (
         <View style={{ padding: t.space[5], borderRadius: t.radius.card, backgroundColor: t.colors.primarySoft, gap: t.space[3] }}>
           <Text variant="subheading" display weight="semibold">
@@ -114,7 +164,39 @@ export default function Profile() {
         ) : null}
       </Section>
 
+      {!guest ? (
+        <Section title="Reminders">
+          <Toggle
+            label="A gentle daily nudge"
+            description="At most once a day, and never if you’ve already been chatting."
+            value={prefs.remindersEnabled}
+            onChange={toggleReminders}
+            testID="toggle-reminders"
+          />
+          {prefs.remindersEnabled ? (
+            <View style={{ paddingBottom: t.space[3] }}>
+              <Segmented
+                label="Reminder time"
+                value={reminderChoice}
+                onChange={(v) => update.mutate({ reminderHour: localHourToUtc(Number(v)) })}
+                options={REMINDER_TIMES}
+              />
+            </View>
+          ) : null}
+        </Section>
+      ) : null}
+
+      {notice ? <Text tone="muted" accessibilityLiveRegion="polite">{notice}</Text> : null}
+
       <Section title="Privacy">
+        {features.data?.memory ? (
+          <>
+            <ListRow icon="brain" label="Memories" detail={prefs.memoryEnabled ? 'On' : 'Off'} onPress={() => router.push('/memories')} testID="profile-memories" />
+            <Divider />
+          </>
+        ) : null}
+        <ListRow icon="download" label="Download my data" detail={exporting ? 'Preparing…' : 'Chats, settings and memories as JSON'} onPress={exporting ? undefined : exportData} testID="profile-export" />
+        <Divider />
         <ListRow icon="trash" label="Delete account" detail="Removes your chats, settings and memories" tone="danger" onPress={() => setDeleteStep(1)} testID="profile-delete" />
       </Section>
 
