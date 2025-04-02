@@ -10,7 +10,7 @@ import { StylePicker } from '@/components/chat/StylePicker';
 import { SuggestionRow } from '@/components/chat/SuggestionRow';
 import { Mascot } from '@/components/mascot/Mascot';
 import { Button, IconButton, ListRow, Sheet, Tactile, Text } from '@/components/ui';
-import { useConversation, useDeleteConversation, useGameAction, useUpdatePreferences } from '@/lib/api/hooks';
+import { useConversation, useDeleteConversation, useFeatures, useGameAction, useUpdatePreferences } from '@/lib/api/hooks';
 import type { ChatItem } from '@/lib/chat/reducer';
 import { useChatThread } from '@/lib/chat/useChatThread';
 import { usePrefs } from '@/lib/prefs';
@@ -28,6 +28,7 @@ export default function ChatScreen() {
   const deleteConvo = useDeleteConversation();
   const gameAction = useGameAction(id);
   const isGuest = useSession((s) => s.user?.isGuest ?? false);
+  const features = useFeatures();
 
   const [menuItem, setMenuItem] = useState<ChatItem | null>(null);
   const [stylePicker, setStylePicker] = useState(false);
@@ -119,6 +120,9 @@ export default function ChatScreen() {
             </Text>
           </Tactile>
         </View>
+        {features.data?.voice && !isGuest ? (
+          <IconButton icon="mic" label="Start voice chat" onPress={() => router.push('/voice')} testID="chat-voice" />
+        ) : null}
         <IconButton icon="more" label="Chat options" onPress={() => setMoreOpen(true)} testID="chat-more" />
       </View>
 
