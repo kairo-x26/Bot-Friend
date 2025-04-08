@@ -91,6 +91,10 @@ function AppNavigator() {
         <Stack.Protected guard={signedIn}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="chat/[id]" />
+          <Stack.Screen name="memories" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="search" />
+          <Stack.Screen name="voice" options={{ presentation: 'fullScreenModal' }} />
+          <Stack.Screen name="upgrade" options={{ presentation: 'modal' }} />
         </Stack.Protected>
       </Stack>
     </>
