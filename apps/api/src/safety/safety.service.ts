@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { LocalModeration, detectsDistress } from '../ai/local-moderation.js';
+import { LocalModeration, asksIfHuman, detectsDistress } from '../ai/local-moderation.js';
 import { MODERATION_PROVIDER, type ModerationCategory, type ModerationProvider } from '../ai/provider.js';
 import { OutputGuard } from './output-guard.js';
 
@@ -37,6 +37,15 @@ export class SafetyService {
     }
     // Harassment aimed at the bot is tolerated; the persona handles it. Distress turns comedy off.
     return { action: 'allow', serious: detectsDistress(text), categories };
+  }
+
+  /**
+   * PRD: users must always understand they are talking to an AI. When asked
+   * directly, guarantee the reply says so even if the model got playful.
+   */
+  ensureAiDisclosure(userText: string, reply: string): string {
+    if (!asksIfHuman(userText) || /\b(AI|artificial intelligence|a bot|chatbot)\b/i.test(reply)) return reply;
+    return `${reply}\n\n(Just so you know: I’m an AI, not a person.)`;
   }
 
   outputGuard(): OutputGuard {

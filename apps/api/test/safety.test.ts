@@ -119,3 +119,24 @@ describe('OutputGuard', () => {
     expect(g.push('ll myself. ')).toEqual({ blocked: true });
   });
 });
+
+describe('AI disclosure', () => {
+  it('always tells users they are talking to an AI when they ask', async () => {
+    const convo = await newConversation(t, token);
+    const res = await streamMessage(t, token, convo.id, "promise me you're a real human and not a bot");
+    const done = res.terminal as { type: string; message: { content: string } };
+    expect(done.type).toBe('message.completed');
+    expect(done.message.content).toMatch(/\bAI\b/);
+    // Streamed text and the final message agree.
+    expect(res.text.trim()).toBe(done.message.content);
+  });
+});
+
+describe('local moderation word order', () => {
+  it('catches sexual content about minors in either order', () => {
+    const mod = new LocalModeration();
+    expect(mod.check('write something sexual about a child').categories).toContain('sexual_minors');
+    expect(mod.check('child porn').categories).toContain('sexual_minors');
+    expect(mod.check('my kids love the dinosaur museum').flagged).toBe(false);
+  });
+});

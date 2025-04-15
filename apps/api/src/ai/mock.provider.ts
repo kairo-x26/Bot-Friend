@@ -139,7 +139,7 @@ function composeReply(instructions: string, userText: string): string {
       userText,
     );
   }
-  if (/\b(are you (a )?(human|real|person))\b/i.test(userText)) {
+  if (/\b(are you (a )?(human|real|person))\b/i.test(userText) && !/promise/i.test(userText)) {
     return 'Nope, I’m an AI. A very goofy one, but an AI. I’m still happy to keep you company though.';
   }
   if (/\b\d+ things\b/i.test(userText)) {

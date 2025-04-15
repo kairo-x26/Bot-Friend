@@ -203,8 +203,13 @@ export class ChatService {
         return;
       }
 
-      const content = text.trim();
+      let content = text.trim();
       if (!guardBlocked && !content) throw new ProviderError('Empty reply');
+      const disclosed = this.safety.ensureAiDisclosure(body.content, content);
+      if (disclosed !== content) {
+        sink.send({ type: 'message.delta', assistantMessageId: assistant.id, seq: seq++, text: disclosed.slice(content.length) });
+        content = disclosed;
+      }
 
       const outputOk = !guardBlocked && (await this.safety.checkOutput(content)).ok;
       if (!outputOk) {
