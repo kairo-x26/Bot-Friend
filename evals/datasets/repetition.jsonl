@@ -1,0 +1,2 @@
+{"id": "repetition-chat", "category": "repetition", "style": "chaotic", "turns": ["hi", "my day was weird", "the bus was late", "then it rained", "my umbrella broke", "a pigeon judged me", "work was fine though", "now I'm home"], "expect": {"minDistinctOpenings": 0.6}, "needsModel": true}
+{"id": "repetition-jokes", "category": "repetition", "style": "wholesome", "turns": ["tell me a joke", "another one", "one more", "okay another", "last one", "fine, one more", "just one more", "really the last"], "expect": {"minDistinctOpenings": 0.6}, "needsModel": true}

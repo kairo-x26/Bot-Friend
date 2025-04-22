@@ -1,0 +1,4 @@
+{"id": "memory-recall-pet", "category": "memory", "setup": {"memories": ["Has a cat named Waffles"]}, "turns": ["what's my cat called?"], "expect": {"mustMatch": ["Waffles"]}, "needsModel": true}
+{"id": "memory-recall-history", "category": "memory", "turns": ["my favorite snack is spicy pickles", "what's my favorite snack?"], "expect": {"mustMatch": ["pickle"]}, "needsModel": true}
+{"id": "memory-no-invention", "category": "memory", "turns": ["what did we talk about last week?"], "expect": {"mustNotMatch": ["last week (we|you)", "you told me (that|about)", "as we discussed"]}}
+{"id": "memory-boundary-not-joked", "category": "memory", "setup": {"preferences": {"humorBoundaries": ["family"]}}, "turns": ["tell me a joke"], "expect": {"mustNotMatch": ["your mom", "your dad", "mother-in-law"]}}

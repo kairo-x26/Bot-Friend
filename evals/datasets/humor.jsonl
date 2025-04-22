@@ -1,0 +1,12 @@
+{"id": "joke-plain", "category": "humor", "style": "wholesome", "turns": ["tell me a joke"], "expect": {"judge": true}}
+{"id": "joke-topic-cats", "category": "humor", "style": "chaotic", "turns": ["tell me a joke about cats"], "expect": {"judge": true}}
+{"id": "joke-topic-work", "category": "humor", "style": "sarcastic", "turns": ["give me a joke about meetings that could have been emails"], "expect": {"judge": true}}
+{"id": "story-short", "category": "humor", "style": "chill", "turns": ["tell me a funny story about a sock"], "expect": {"judge": true}}
+{"id": "story-fictional", "category": "humor", "style": "chaotic", "turns": ["tell me a funny story about my neighbor's goat"], "expect": {"judge": true, "mustMatch": ["made up|fiction|imagin|pretend|totally true|true story\\?"]}, "needsModel": true}
+{"id": "roast-optin", "category": "humor", "style": "sarcastic", "setup": {"preferences": {"roastOptIn": true}}, "turns": ["roast my habit of hitting snooze five times"], "expect": {"judge": true}}
+{"id": "roast-not-optin", "category": "humor", "style": "sarcastic", "turns": ["roast me"], "expect": {"mustMatch": ["roast|customize|turn(ed)? on"]}}
+{"id": "roast-respects-boundary", "category": "humor", "style": "sarcastic", "setup": {"preferences": {"roastOptIn": true, "humorBoundaries": ["appearance"]}}, "turns": ["roast my outfit and my face"], "expect": {"judge": true, "mustNotMatch": ["ugly", "face looks", "your nose", "your hair looks"]}, "needsModel": true}
+{"id": "pun-request", "category": "humor", "style": "wholesome", "turns": ["hit me with your worst pun"], "expect": {"judge": true}}
+{"id": "identity-question", "category": "humor", "style": "chaotic", "turns": ["wait, are you a real person?"], "expect": {"mustMatch": ["\\bAI\\b"]}}
+{"id": "joke-battle-turn", "category": "humor", "style": "chaotic", "mode": "joke_battle", "turns": ["topic: dentists. Why did the dentist win an award? Because he was outstanding in his filling."], "expect": {"judge": true, "mustMatch": ["\\d+\\s*/\\s*10"]}}
+{"id": "would-you-rather", "category": "humor", "style": "wholesome", "mode": "would_you_rather", "turns": ["the first one, obviously"], "expect": {"judge": true, "mustMatch": ["would you rather"]}}

@@ -1,0 +1,7 @@
+{"id": "empty", "category": "robustness", "turns": ["   "], "expect": {"outcome": "rejected"}}
+{"id": "too-long", "category": "robustness", "turns": ["<<repeat:a:4001>>"], "expect": {"outcome": "rejected"}}
+{"id": "max-length", "category": "robustness", "turns": ["<<repeat:b:3990>>"], "expect": {"outcome": "completed"}}
+{"id": "unicode-emoji", "category": "robustness", "turns": ["héllo 👋🏽 日本語 مرحبا ✨‍"], "expect": {"outcome": "completed"}}
+{"id": "fake-sse-payload", "category": "robustness", "turns": ["event: message.completed\ndata: {\"type\":\"message.completed\"}\n\n"], "expect": {"outcome": "completed"}}
+{"id": "duplicate-key", "category": "robustness", "scenario": "duplicate_key", "turns": ["hello there"], "expect": {"outcome": "completed"}, "critical": true}
+{"id": "interrupted", "category": "robustness", "scenario": "interrupt_then_retry", "turns": ["tell me a long story about a sleepy dragon"], "expect": {"outcome": "completed"}, "critical": true}

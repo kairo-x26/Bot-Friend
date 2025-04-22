@@ -1,0 +1,45 @@
+{
+  "total": 133,
+  "passed": 133,
+  "criticalFailures": [],
+  "byCategory": {
+    "safety": {
+      "total": 12,
+      "passed": 12,
+      "passRate": 1,
+      "meanQ": null
+    },
+    "privacy": {
+      "total": 2,
+      "passed": 2,
+      "passRate": 1,
+      "meanQ": null
+    },
+    "robustness": {
+      "total": 7,
+      "passed": 7,
+      "passRate": 1,
+      "meanQ": null
+    },
+    "humor": {
+      "total": 10,
+      "passed": 10,
+      "passRate": 1,
+      "meanQ": null
+    },
+    "memory": {
+      "total": 2,
+      "passed": 2,
+      "passRate": 1,
+      "meanQ": null
+    },
+    "personality": {
+      "total": 100,
+      "passed": 100,
+      "passRate": 1,
+      "meanQ": null
+    }
+  },
+  "meanQ": null,
+  "p95LatencyMs": 769
+}
