@@ -21,6 +21,7 @@ import { ConversationsModule } from './conversations/conversations.module.js';
 import { DatabaseModule } from './db/database.module.js';
 import { FeedbackModule } from './feedback/feedback.module.js';
 import { HealthController } from './health/health.controller.js';
+import { MetricsController } from './observability/metrics.controller.js';
 import { MemoryModule } from './memory/memory.module.js';
 import { LimitsModule } from './limits/limits.module.js';
 import { ExpoPushProvider, PUSH_PROVIDER, RecordingPushProvider, type PushProvider } from './reminders/push.provider.js';
@@ -101,7 +102,7 @@ export class AppModule {
         BillingModule,
         VoiceModule,
       ],
-      controllers: [HealthController],
+      controllers: [HealthController, MetricsController],
       providers: [{ provide: AppConfig, useValue: config }, ...integrations],
       exports: [AppConfig, ...integrations.map((p) => (p as { provide: symbol }).provide)],
     };

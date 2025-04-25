@@ -1,6 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from '@nestjs/common';
 import { ErrorCode, type ApiErrorBody } from '@bot-friend/shared';
 import type { FastifyReply, FastifyRequest } from 'fastify';
+import type { ErrorReporter } from '../observability/error-reporter.js';
 import { ApiError } from './api-error.js';
 
 const HTTP_TO_CODE: Record<number, ErrorCode> = {
@@ -18,6 +19,8 @@ const HTTP_TO_CODE: Record<number, ErrorCode> = {
 @Catch()
 export class ErrorFilter implements ExceptionFilter {
   private readonly logger = new Logger('ErrorFilter');
+
+  constructor(private readonly reporter?: ErrorReporter) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -52,6 +55,7 @@ export class ErrorFilter implements ExceptionFilter {
       body = { error: { code, message: status >= 500 ? 'Something went wrong' : exception.message, requestId } };
     } else {
       this.logger.error({ err: exception, requestId }, 'Unhandled error');
+      this.reporter?.capture(exception, { requestId, route: req.routeOptions?.url ?? 'unknown' });
       body = { error: { code: ErrorCode.Internal, message: 'Something went wrong', requestId } };
     }
 

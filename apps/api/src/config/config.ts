@@ -68,6 +68,9 @@ const envSchema = z.object({
   EXPO_ACCESS_TOKEN: z.string().optional(),
   REMINDER_SWEEP_MINUTES: z.coerce.number().int().nonnegative().default(15),
 
+  SENTRY_DSN: z.string().url().optional(),
+  METRICS_TOKEN: z.string().min(16).optional(),
+
   FEATURE_MEMORY: bool.default(true),
   FEATURE_VOICE: bool.default(false),
   FEATURE_BILLING: bool.default(false),

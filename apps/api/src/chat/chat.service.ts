@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { SpanStatusCode, trace } from '@opentelemetry/api';
 import { and, desc, eq, inArray } from 'drizzle-orm';
 import { ErrorCode, type ComedyStyle, type SendMessage } from '@bot-friend/shared';
 import { buildPrompt, detectHumorIntent } from '../ai/prompt-builder.js';
@@ -19,6 +20,7 @@ import {
 } from '../db/schema.js';
 import { BLOCKED_OUTPUT_MESSAGE, SafetyService, type InputVerdict } from '../safety/safety.service.js';
 import { MemoryService } from '../memory/memory.service.js';
+import * as metrics from '../observability/metrics.js';
 import { advanceGame, effectiveMode, isFinalRound, readGameState } from '../games/game-engine.js';
 import { UsersService } from '../users/users.service.js';
 import { InflightRegistry } from './inflight.js';
@@ -139,6 +141,11 @@ export class ChatService {
       this.analytics.track('chat_started', userId, { mode: conversation.mode, style });
     }
 
+    const span = trace.getTracer('bot-friend').startSpan('chat.reply', {
+      attributes: { 'bf.mode': conversation.mode, 'bf.style': style, 'bf.retry': Boolean(turn.existingUserMessage) },
+    });
+    let firstDeltaAt: number | null = null;
+    let outcome = 'failed';
     const controller = this.inflight.start(assistant.id, userId);
     const signal = AbortSignal.any([controller.signal, sink.closed, AbortSignal.timeout(this.config.env.AI_TIMEOUT_MS)]);
     const startedAt = Date.now();
@@ -187,7 +194,13 @@ export class ChatService {
             guardBlocked = true;
             break;
           }
-          if (res.release) sink.send({ type: 'message.delta', assistantMessageId: assistant.id, seq: seq++, text: res.release });
+          if (res.release) {
+            if (firstDeltaAt === null) {
+              firstDeltaAt = Date.now();
+              metrics.replyFirstToken.observe((firstDeltaAt - startedAt) / 1000);
+            }
+            sink.send({ type: 'message.delta', assistantMessageId: assistant.id, seq: seq++, text: res.release });
+          }
         } else {
           usage = chunk;
         }
@@ -198,7 +211,12 @@ export class ChatService {
         else if (rest.release) sink.send({ type: 'message.delta', assistantMessageId: assistant.id, seq: seq++, text: rest.release });
       }
 
+      span.setAttributes({ 'bf.model': usage.modelId, 'bf.prompt_version': prompt.promptVersion, 'bf.tokens.in': usage.inputTokens, 'bf.tokens.out': usage.outputTokens });
+      metrics.tokens.inc({ direction: 'in', model: usage.modelId }, usage.inputTokens);
+      metrics.tokens.inc({ direction: 'out', model: usage.modelId }, usage.outputTokens);
+      metrics.costMicros.inc(this.costMicros(usage.inputTokens, usage.outputTokens));
       if (signal.aborted) {
+        outcome = 'cancelled';
         await this.finishCancelled(assistant, text, controller.signal.aborted, sink);
         return;
       }
@@ -213,6 +231,7 @@ export class ChatService {
 
       const outputOk = !guardBlocked && (await this.safety.checkOutput(content)).ok;
       if (!outputOk) {
+        outcome = 'blocked_output';
         await this.blockOutput(userId, conversation, assistant, usage, startedAt, sink);
         return;
       }
@@ -257,6 +276,7 @@ export class ChatService {
       });
 
       sink.send({ type: 'message.completed', message: toMessageDto(completed) });
+      outcome = 'completed';
       if (!serious) void this.memory.suggestFrom(userId, prefs.memoryEnabled, body.content, userMessage.id);
       this.analytics.track('reply_completed', userId, {
         mode,
@@ -267,10 +287,13 @@ export class ChatService {
       });
     } catch (err) {
       if (signal.aborted && !(err instanceof ProviderError)) {
+        outcome = 'cancelled';
         await this.finishCancelled(assistant, text, controller.signal.aborted, sink);
         return;
       }
       const timedOut = signal.aborted;
+      span.recordException(err as Error);
+      span.setStatus({ code: SpanStatusCode.ERROR });
       this.logger.warn(`Generation failed for ${assistant.id}: ${(err as Error).message}`);
       this.analytics.track('reply_failed', userId, { timedOut });
       await this.db
@@ -285,6 +308,10 @@ export class ChatService {
         retryable: true,
       });
     } finally {
+      metrics.replies.inc({ outcome });
+      metrics.replyDuration.observe({ outcome }, (Date.now() - startedAt) / 1000);
+      span.setAttribute('bf.outcome', outcome);
+      span.end();
       this.inflight.finish(assistant.id);
       sink.end();
     }
@@ -347,6 +374,7 @@ export class ChatService {
     });
     sink.send({ type: 'message.started', userMessage: toMessageDto(userMessage), assistantMessageId: assistant.id, replay: false });
     this.analytics.track('reply_blocked', userId, { stage: 'input', support });
+    metrics.replies.inc({ outcome: support ? 'support' : 'blocked_input' });
     sink.send({
       type: 'message.blocked',
       assistantMessageId: assistant.id,

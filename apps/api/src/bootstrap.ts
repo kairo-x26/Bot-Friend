@@ -5,6 +5,8 @@ import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fa
 import { randomUUID } from 'node:crypto';
 import { AppModule, type AppModuleOptions } from './app.module.js';
 import { ErrorFilter } from './common/error.filter.js';
+import { httpDuration, httpRequests } from './observability/metrics.js';
+import { createErrorReporter } from './observability/error-reporter.js';
 
 const NEST_LEVELS: Record<string, LogLevel[] | false> = {
   silent: false,
@@ -48,6 +50,12 @@ export async function createApp(options: AppModuleOptions): Promise<NestFastifyA
   fastify.addHook('onRequest', async (req, reply) => {
     reply.header('x-request-id', req.id);
   });
+  fastify.addHook('onResponse', async (req, reply) => {
+    // routeOptions.url is the pattern (/v1/conversations/:id), never the raw path with ids.
+    const route = req.routeOptions?.url ?? 'unmatched';
+    httpRequests.inc({ method: req.method, route, status: `${Math.floor(reply.statusCode / 100)}xx` });
+    httpDuration.observe({ method: req.method, route }, reply.elapsedTime / 1000);
+  });
 
   app.enableCors({
     origin: config.env.CORS_ORIGINS.length ? config.env.CORS_ORIGINS : !config.isProduction,
@@ -56,7 +64,7 @@ export async function createApp(options: AppModuleOptions): Promise<NestFastifyA
     exposedHeaders: ['x-request-id', 'retry-after'],
     maxAge: 600,
   });
-  app.useGlobalFilters(new ErrorFilter());
+  app.useGlobalFilters(new ErrorFilter(await createErrorReporter(config.env.SENTRY_DSN, config.env.NODE_ENV)));
   app.enableShutdownHooks();
   await app.init();
   return app;

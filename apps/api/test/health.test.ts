@@ -52,3 +52,28 @@ describe('CORS', () => {
     expect(String(res.headers['access-control-allow-methods'])).toMatch(/DELETE/);
   });
 });
+
+describe('readiness and metrics', () => {
+  it('reports ready when the database answers', async () => {
+    const res = await app.inject({ method: 'GET', url: '/health/ready' });
+    expect(res.json()).toEqual({ status: 'ready' });
+  });
+
+  it('exposes Prometheus metrics with route patterns, never raw ids', async () => {
+    await app.inject({ method: 'GET', url: '/v1/conversations/7d1c5d8e-3f0a-4c55-9a3b-5d0e2b9f8a11' });
+    const res = await app.inject({ method: 'GET', url: '/metrics' });
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toContain('botfriend_http_requests_total');
+    expect(res.body).toContain('route="/v1/conversations/:id"');
+    expect(res.body).not.toContain('7d1c5d8e');
+  });
+
+  it('protects metrics with a token when configured', async () => {
+    const { createTestApp } = await import('./support/app.js');
+    const t2 = await createTestApp({ METRICS_TOKEN: 'metrics-secret-0123456789' });
+    expect((await t2.app.inject({ method: 'GET', url: '/metrics' })).statusCode).toBe(401);
+    const ok = await t2.app.inject({ method: 'GET', url: '/metrics', headers: { authorization: 'Bearer metrics-secret-0123456789' } });
+    expect(ok.statusCode).toBe(200);
+    await t2.close();
+  });
+});

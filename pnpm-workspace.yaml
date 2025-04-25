@@ -6,6 +6,7 @@ allowBuilds:
   '@parcel/watcher': false
   '@swc/core': true
   esbuild: true
+  protobufjs: false
   unrs-resolver: false
 minimumReleaseAgeExclude:
   - expo-iap@6.1.1
