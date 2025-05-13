@@ -1,7 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { eq } from 'drizzle-orm';
 import { usageCounters, usageRecords } from '../src/db/schema.js';
-import { MemoryRateLimitStore, RateLimiter, type RateLimitStore } from '../src/limits/rate-limiter.js';
+import {
+  MemoryRateLimitStore,
+  RateLimiter,
+  type RateLimitStore,
+} from '../src/limits/rate-limiter.js';
 import { createTestApp, type TestApp } from './support/app.js';
 import { call, devLogin, guestLogin, newConversation, streamMessage } from './support/http.js';
 
@@ -25,7 +29,12 @@ describe('daily quota', () => {
     expect(Number(res.headers['retry-after'])).toBeGreaterThan(0);
 
     const usage = await call(t, 'GET', '/v1/usage', { token: g.accessToken });
-    expect(usage.json).toMatchObject({ entitlement: 'guest', messagesUsed: 3, messagesLimit: 3, period: 'day' });
+    expect(usage.json).toMatchObject({
+      entitlement: 'guest',
+      messagesUsed: 3,
+      messagesLimit: 3,
+      period: 'day',
+    });
   });
 
   it('does not charge replays or retries', async () => {
@@ -46,7 +55,10 @@ describe('daily quota', () => {
     );
     expect(results.filter((r) => r.status === 200)).toHaveLength(5);
     expect(results.filter((r) => r.status === 429)).toHaveLength(7);
-    const [row] = await t.db.select().from(usageCounters).where(eq(usageCounters.userId, u.user.id));
+    const [row] = await t.db
+      .select()
+      .from(usageCounters)
+      .where(eq(usageCounters.userId, u.user.id));
     expect(row!.messages).toBe(5);
   });
 });
@@ -54,7 +66,10 @@ describe('daily quota', () => {
 describe('rate limits', () => {
   let t: TestApp;
   beforeAll(async () => {
-    t = await createTestApp({ RATE_LIMIT_MESSAGES_PER_MINUTE: '2', RATE_LIMIT_AUTH_PER_MINUTE: '4' });
+    t = await createTestApp({
+      RATE_LIMIT_MESSAGES_PER_MINUTE: '2',
+      RATE_LIMIT_AUTH_PER_MINUTE: '4',
+    });
   });
   afterAll(() => t.close());
 
@@ -72,7 +87,13 @@ describe('rate limits', () => {
     // One of the 4 allowed attempts was already used by devLogin above.
     const statuses: number[] = [];
     for (let i = 0; i < 5; i++) {
-      statuses.push((await call(t, 'POST', '/v1/auth/session', { body: { provider: 'guest', ageConfirmed: true } })).status);
+      statuses.push(
+        (
+          await call(t, 'POST', '/v1/auth/session', {
+            body: { provider: 'guest', ageConfirmed: true },
+          })
+        ).status,
+      );
     }
     expect(statuses).toEqual([200, 200, 200, 429, 429]);
   });
@@ -82,7 +103,9 @@ describe('global spend ceiling', () => {
   it('pauses chat once the daily budget is used up', async () => {
     const t = await createTestApp({ AI_DAILY_BUDGET_USD: '0.01' });
     const u = await devLogin(t);
-    await t.db.insert(usageRecords).values({ userId: u.user.id, modelId: 'x', estimatedCostMicros: 20_000 });
+    await t.db
+      .insert(usageRecords)
+      .values({ userId: u.user.id, modelId: 'x', estimatedCostMicros: 20_000 });
     const convo = await newConversation(t, u.accessToken);
     const res = await streamMessage(t, u.accessToken, convo.id, 'hi');
     expect(res.status).toBe(503);
@@ -101,7 +124,9 @@ describe('RateLimiter', () => {
   });
 
   it('fails open when the store errors', async () => {
-    const broken: RateLimitStore = { increment: async () => Promise.reject(new Error('redis down')) };
+    const broken: RateLimitStore = {
+      increment: async () => Promise.reject(new Error('redis down')),
+    };
     expect((await new RateLimiter(broken).hit('k', 1, 1000)).allowed).toBe(true);
   });
 });

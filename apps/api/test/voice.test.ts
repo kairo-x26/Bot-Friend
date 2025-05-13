@@ -21,10 +21,17 @@ afterAll(() => t.close());
 describe('POST /v1/voice/session', () => {
   it('returns a short-lived client secret built from the safety + persona layers', async () => {
     const u = await devLogin(t);
-    await call(t, 'PATCH', '/v1/me/preferences', { token: u.accessToken, body: { comedyStyle: 'chill' } });
+    await call(t, 'PATCH', '/v1/me/preferences', {
+      token: u.accessToken,
+      body: { comedyStyle: 'chill' },
+    });
     const res = await call(t, 'POST', '/v1/voice/session', { token: u.accessToken });
     expect(res.status).toBe(201);
-    expect(res.json).toMatchObject({ clientSecret: 'ek_test_secret', model: 'gpt-realtime', voice: 'marin' });
+    expect(res.json).toMatchObject({
+      clientSecret: 'ek_test_secret',
+      model: 'gpt-realtime',
+      voice: 'marin',
+    });
     expect(spy.last!.instructions).toMatch(/You are an AI/);
     expect(spy.last!.instructions).toContain('Style: Chill');
     expect(spy.last!.instructions).toContain('Voice mode');
@@ -36,7 +43,9 @@ describe('POST /v1/voice/session', () => {
     const u = await devLogin(t);
     expect((await call(t, 'POST', '/v1/voice/session', { token: u.accessToken })).status).toBe(201);
     expect((await call(t, 'POST', '/v1/voice/session', { token: u.accessToken })).status).toBe(201);
-    expect((await call(t, 'POST', '/v1/voice/session', { token: u.accessToken })).json.error.code).toBe('quota_exceeded');
+    expect(
+      (await call(t, 'POST', '/v1/voice/session', { token: u.accessToken })).json.error.code,
+    ).toBe('quota_exceeded');
     const g = await guestLogin(t);
     expect((await call(t, 'POST', '/v1/voice/session', { token: g.accessToken })).status).toBe(403);
   });
@@ -44,7 +53,9 @@ describe('POST /v1/voice/session', () => {
   it('is disabled by default', async () => {
     const t2 = await createTestApp();
     const u = await devLogin(t2);
-    expect((await call(t2, 'POST', '/v1/voice/session', { token: u.accessToken })).json.error.code).toBe('feature_disabled');
+    expect(
+      (await call(t2, 'POST', '/v1/voice/session', { token: u.accessToken })).json.error.code,
+    ).toBe('feature_disabled');
     await t2.close();
   });
 });

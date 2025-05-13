@@ -66,7 +66,9 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'load': {
       // Server history wins, but keep local messages the server hasn't seen yet.
       const serverIds = new Set(action.messages.map((m) => m.id));
-      const pending = state.items.filter((i) => !i.id || !serverIds.has(i.id)).filter((i) => i.status === 'unsent' || i.status === 'sending' || i.status === 'streaming');
+      const pending = state.items
+        .filter((i) => !i.id || !serverIds.has(i.id))
+        .filter((i) => i.status === 'unsent' || i.status === 'sending' || i.status === 'streaming');
       return { ...state, items: [...action.messages.map(fromServer), ...pending] };
     }
 
@@ -92,7 +94,14 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'retry': {
       const replyKey = replyKeyFor(state.items, action.localKey);
       const items = state.items.filter((i) => i.key !== replyKey);
-      return { ...state, items: replaceItem(items, action.localKey, { status: 'sending', error: undefined, retryable: undefined }) };
+      return {
+        ...state,
+        items: replaceItem(items, action.localKey, {
+          status: 'sending',
+          error: undefined,
+          retryable: undefined,
+        }),
+      };
     }
 
     case 'sendError': {
@@ -102,12 +111,21 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...state,
         streamingKey: null,
-        items: replaceItem(items, action.localKey, { status: 'unsent', error: action.message, retryable: action.retryable }),
+        items: replaceItem(items, action.localKey, {
+          status: 'unsent',
+          error: action.message,
+          retryable: action.retryable,
+        }),
       };
     }
 
     case 'react':
-      return { ...state, items: state.items.map((i) => (i.id === action.id ? { ...i, reaction: action.reaction } : i)) };
+      return {
+        ...state,
+        items: state.items.map((i) =>
+          i.id === action.id ? { ...i, reaction: action.reaction } : i,
+        ),
+      };
 
     case 'remove':
       return { ...state, items: state.items.filter((i) => i.key !== action.key) };
@@ -121,7 +139,12 @@ function applyEvent(state: ChatState, localKey: string, event: StreamEvent): Cha
   switch (event.type) {
     case 'message.started': {
       const u = event.userMessage;
-      let items = replaceItem(state.items, localKey, { id: u.id, status: u.status, createdAt: u.createdAt, error: undefined });
+      let items = replaceItem(state.items, localKey, {
+        id: u.id,
+        status: u.status,
+        createdAt: u.createdAt,
+        error: undefined,
+      });
       // Same server message can already be on screen (replay after reload); drop the duplicate.
       items = items.filter((i) => i.key === localKey || i.id !== u.id);
       const assistantKey = event.assistantMessageId;
@@ -145,24 +168,52 @@ function applyEvent(state: ChatState, localKey: string, event: StreamEvent): Cha
       if (event.assistantMessageId !== state.streamingKey) return state;
       // Duplicate or out-of-order frames are ignored; seq must be the next one expected.
       if (event.seq !== state.nextSeq) return state;
-      const items = state.items.map((i) => (i.key === event.assistantMessageId ? { ...i, content: i.content + event.text } : i));
+      const items = state.items.map((i) =>
+        i.key === event.assistantMessageId ? { ...i, content: i.content + event.text } : i,
+      );
       return { ...state, items, nextSeq: state.nextSeq + 1 };
     }
 
     case 'message.completed': {
       const m = event.message;
       const exists = state.items.some((i) => i.key === m.id);
-      const final: Partial<ChatItem> = { content: m.content, status: 'completed', suggestions: m.suggestions, reaction: m.reaction, createdAt: m.createdAt };
-      const items = exists ? replaceItem(state.items, m.id, final) : [...state.items, { ...fromServer(m) }];
+      const final: Partial<ChatItem> = {
+        content: m.content,
+        status: 'completed',
+        suggestions: m.suggestions,
+        reaction: m.reaction,
+        createdAt: m.createdAt,
+      };
+      const items = exists
+        ? replaceItem(state.items, m.id, final)
+        : [...state.items, { ...fromServer(m) }];
       return { ...state, items, streamingKey: null };
     }
 
     case 'message.blocked': {
       const key = event.assistantMessageId;
-      const patch: Partial<ChatItem> = { content: event.replacement, status: 'blocked', supportResources: event.supportResources, suggestions: [] };
+      const patch: Partial<ChatItem> = {
+        content: event.replacement,
+        status: 'blocked',
+        supportResources: event.supportResources,
+        suggestions: [],
+      };
       let items = state.items.some((i) => i.key === key)
         ? replaceItem(state.items, key, patch)
-        : [...state.items, { key, id: key, role: 'assistant' as const, reaction: null, createdAt: new Date().toISOString(), ...patch, content: event.replacement, status: 'blocked' as const, suggestions: [] }];
+        : [
+            ...state.items,
+            {
+              key,
+              id: key,
+              role: 'assistant' as const,
+              reaction: null,
+              createdAt: new Date().toISOString(),
+              ...patch,
+              content: event.replacement,
+              status: 'blocked' as const,
+              suggestions: [],
+            },
+          ];
       if (event.stage === 'input') items = replaceItem(items, localKey, { status: 'blocked' });
       return { ...state, items, streamingKey: null };
     }
@@ -186,7 +237,8 @@ export function latestSuggestions(state: ChatState): string[] {
 }
 
 /** The mascot's mood follows the conversation. */
-export type MascotMood = 'idle' | 'happy' | 'laughing' | 'thinking' | 'surprised' | 'caring' | 'sleepy';
+export type MascotMood =
+  'idle' | 'happy' | 'laughing' | 'thinking' | 'surprised' | 'caring' | 'sleepy';
 
 export function moodFor(state: ChatState): MascotMood {
   if (state.streamingKey) return 'thinking';

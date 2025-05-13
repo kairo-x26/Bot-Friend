@@ -42,7 +42,9 @@ export default function RootLayout() {
   });
   const [storesReady, setStoresReady] = useState(false);
   useEffect(() => {
-    void Promise.all([useSession.getState().hydrate(), usePrefs.getState().loadLocal()]).finally(() => setStoresReady(true));
+    void Promise.all([useSession.getState().hydrate(), usePrefs.getState().loadLocal()]).finally(
+      () => setStoresReady(true),
+    );
   }, []);
 
   const ready = (fontsLoaded || !!fontError) && storesReady;
@@ -56,7 +58,13 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider settings={{ theme: prefs.theme, reducedMotion: prefs.reducedMotion, largeText: prefs.largeText }}>
+        <ThemeProvider
+          settings={{
+            theme: prefs.theme,
+            reducedMotion: prefs.reducedMotion,
+            largeText: prefs.largeText,
+          }}
+        >
           <AppNavigator />
         </ThemeProvider>
       </QueryClientProvider>

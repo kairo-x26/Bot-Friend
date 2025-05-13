@@ -10,10 +10,17 @@ export class UsersService {
   constructor(@Inject(DB) private readonly db: Db) {}
 
   async preferences(userId: string): Promise<Preferences> {
-    const [row] = await this.db.select().from(userPreferences).where(eq(userPreferences.userId, userId));
+    const [row] = await this.db
+      .select()
+      .from(userPreferences)
+      .where(eq(userPreferences.userId, userId));
     if (row) return toPreferencesDto(row);
     // Self-heal accounts created before preferences existed.
-    const [created] = await this.db.insert(userPreferences).values({ userId }).onConflictDoNothing().returning();
+    const [created] = await this.db
+      .insert(userPreferences)
+      .values({ userId })
+      .onConflictDoNothing()
+      .returning();
     if (created) return toPreferencesDto(created);
     return this.preferences(userId);
   }
@@ -24,7 +31,10 @@ export class UsersService {
 
   async updatePreferences(userId: string, patch: UpdatePreferences): Promise<Preferences> {
     await this.preferences(userId);
-    const values: Partial<typeof userPreferences.$inferInsert> = { ...patch, updatedAt: new Date() };
+    const values: Partial<typeof userPreferences.$inferInsert> = {
+      ...patch,
+      updatedAt: new Date(),
+    };
     if (patch.humorBoundaries) values.humorBoundaries = [...new Set(patch.humorBoundaries)];
     // Turning reminders on without an hour picks early evening (UTC) rather than leaving them inert.
     if (patch.remindersEnabled && patch.reminderHour === undefined) {

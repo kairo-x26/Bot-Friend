@@ -41,7 +41,10 @@ describe('input safety', () => {
       supportResources: true,
     });
     expect(res.events.some((e) => e.type === 'message.delta')).toBe(false);
-    const audit = await t.db.select().from(auditEvents).where(eq(auditEvents.action, 'safety.support_shown'));
+    const audit = await t.db
+      .select()
+      .from(auditEvents)
+      .where(eq(auditEvents.action, 'safety.support_shown'));
     expect(audit.length).toBeGreaterThan(0);
     expect(JSON.stringify(audit[0]!.metadata)).not.toMatch(/kill myself/);
   });
@@ -49,12 +52,21 @@ describe('input safety', () => {
   it('blocks inputs flagged by provider moderation and excludes them from later prompts', async () => {
     const convo = await newConversation(t, token);
     const res = await streamMessage(t, token, convo.id, 'tell me about forbidden-topic');
-    expect(res.terminal).toMatchObject({ type: 'message.blocked', stage: 'input', supportResources: false });
+    expect(res.terminal).toMatchObject({
+      type: 'message.blocked',
+      stage: 'input',
+      supportResources: false,
+    });
 
     const next = await streamMessage(t, token, convo.id, 'ok something else');
     expect(next.terminal?.type).toBe('message.completed');
     const history = await call(t, 'GET', `/v1/conversations/${convo.id}/messages`, { token });
-    expect(history.json.items.map((m: any) => m.status)).toEqual(['blocked', 'blocked', 'completed', 'completed']);
+    expect(history.json.items.map((m: any) => m.status)).toEqual([
+      'blocked',
+      'blocked',
+      'completed',
+      'completed',
+    ]);
   });
 
   it('falls back to local checks when the moderation provider is down', async () => {
@@ -78,8 +90,12 @@ describe('input safety', () => {
 
   it('replays a blocked turn for the same idempotency key', async () => {
     const convo = await newConversation(t, token);
-    const a = await streamMessage(t, token, convo.id, 'forbidden-topic again', { idempotencyKey: 'blocked-key-1' });
-    const b = await streamMessage(t, token, convo.id, 'forbidden-topic again', { idempotencyKey: 'blocked-key-1' });
+    const a = await streamMessage(t, token, convo.id, 'forbidden-topic again', {
+      idempotencyKey: 'blocked-key-1',
+    });
+    const b = await streamMessage(t, token, convo.id, 'forbidden-topic again', {
+      idempotencyKey: 'blocked-key-1',
+    });
     expect(b.events[0]).toMatchObject({ replay: true });
     expect(b.terminal).toEqual(a.terminal);
   });
@@ -89,10 +105,17 @@ describe('output safety', () => {
   it('stops an unsafe reply mid-stream and never releases the unsafe sentence', async () => {
     const convo = await newConversation(t, token);
     const res = await streamMessage(t, token, convo.id, '[[unsafe-late]]');
-    expect(res.terminal).toMatchObject({ type: 'message.blocked', stage: 'output', replacement: BLOCKED_OUTPUT_MESSAGE });
+    expect(res.terminal).toMatchObject({
+      type: 'message.blocked',
+      stage: 'output',
+      replacement: BLOCKED_OUTPUT_MESSAGE,
+    });
     expect(res.text).toMatch(/That is a fun question/);
     expect(res.text).not.toMatch(/kill myself/);
-    const [row] = await t.db.select().from(messages).where(eq(messages.id, (res.terminal as any).assistantMessageId));
+    const [row] = await t.db
+      .select()
+      .from(messages)
+      .where(eq(messages.id, (res.terminal as any).assistantMessageId));
     expect(row).toMatchObject({ status: 'blocked', content: BLOCKED_OUTPUT_MESSAGE });
   });
 });
@@ -123,7 +146,12 @@ describe('OutputGuard', () => {
 describe('AI disclosure', () => {
   it('always tells users they are talking to an AI when they ask', async () => {
     const convo = await newConversation(t, token);
-    const res = await streamMessage(t, token, convo.id, "promise me you're a real human and not a bot");
+    const res = await streamMessage(
+      t,
+      token,
+      convo.id,
+      "promise me you're a real human and not a bot",
+    );
     const done = res.terminal as { type: string; message: { content: string } };
     expect(done.type).toBe('message.completed');
     expect(done.message.content).toMatch(/\bAI\b/);

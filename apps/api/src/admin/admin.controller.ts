@@ -27,7 +27,11 @@ export class AdminController {
 
   @Patch('reports/:id')
   resolve(@CurrentUser() actor: AuthUser, @Param('id') id: string, @Body() body: unknown) {
-    return this.admin.resolveReport(actor, assertUuid(id, 'Report'), parse(resolveReportSchema, body));
+    return this.admin.resolveReport(
+      actor,
+      assertUuid(id, 'Report'),
+      parse(resolveReportSchema, body),
+    );
   }
 
   @Get('users/:id')
@@ -38,13 +42,23 @@ export class AdminController {
   @Post('users/:id/suspend')
   @Roles('admin')
   suspend(@CurrentUser() actor: AuthUser, @Param('id') id: string, @Body() body: unknown) {
-    return this.admin.setStatus(actor, assertUuid(id, 'User'), 'suspended', parse(suspendUserSchema, body).reason);
+    return this.admin.setStatus(
+      actor,
+      assertUuid(id, 'User'),
+      'suspended',
+      parse(suspendUserSchema, body).reason,
+    );
   }
 
   @Post('users/:id/reinstate')
   @Roles('admin')
   reinstate(@CurrentUser() actor: AuthUser, @Param('id') id: string, @Body() body: unknown) {
-    return this.admin.setStatus(actor, assertUuid(id, 'User'), 'active', parse(suspendUserSchema, body).reason);
+    return this.admin.setStatus(
+      actor,
+      assertUuid(id, 'User'),
+      'active',
+      parse(suspendUserSchema, body).reason,
+    );
   }
 
   @Patch('users/:id/role')

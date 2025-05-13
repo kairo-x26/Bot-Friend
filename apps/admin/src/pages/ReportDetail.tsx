@@ -8,11 +8,15 @@ import { CATEGORY_LABEL, PRIORITY_LABEL, dateTime } from '../format';
 export function ReportDetail() {
   const { id = '' } = useParams();
   const qc = useQueryClient();
-  const report = useQuery({ queryKey: ['report', id], queryFn: () => request<AdminReportDetail>('GET', `/v1/admin/reports/${id}`) });
+  const report = useQuery({
+    queryKey: ['report', id],
+    queryFn: () => request<AdminReportDetail>('GET', `/v1/admin/reports/${id}`),
+  });
   const [status, setStatus] = useState<ResolveReport['status']>('actioned');
   const [resolution, setResolution] = useState('');
   const resolve = useMutation({
-    mutationFn: (body: ResolveReport) => request<AdminReportDetail>('PATCH', `/v1/admin/reports/${id}`, body),
+    mutationFn: (body: ResolveReport) =>
+      request<AdminReportDetail>('PATCH', `/v1/admin/reports/${id}`, body),
     onSuccess: (data) => {
       qc.setQueryData(['report', id], data);
       void qc.invalidateQueries({ queryKey: ['reports'] });
@@ -21,7 +25,10 @@ export function ReportDetail() {
     },
   });
 
-  if (report.isError) return <div className="error">Couldn’t load this report. {(report.error as Error).message}</div>;
+  if (report.isError)
+    return (
+      <div className="error">Couldn’t load this report. {(report.error as Error).message}</div>
+    );
   if (!report.data) return <p className="muted">Loading…</p>;
   const r = report.data;
 
@@ -79,7 +86,13 @@ export function ReportDetail() {
             <dt>Reply sent</dt>
             <dd>{dateTime(r.evidence.messageCreatedAt)}</dd>
             <dt>Reporter</dt>
-            <dd>{r.reporterId ? <Link to={`/users?id=${r.reporterId}`}>{r.reporterId.slice(0, 8)}</Link> : 'deleted account'}</dd>
+            <dd>
+              {r.reporterId ? (
+                <Link to={`/users?id=${r.reporterId}`}>{r.reporterId.slice(0, 8)}</Link>
+              ) : (
+                'deleted account'
+              )}
+            </dd>
           </dl>
           {r.resolution ? (
             <div className="notice">
@@ -90,17 +103,30 @@ export function ReportDetail() {
             <h3>Resolve</h3>
             <label>
               Outcome
-              <select value={status} onChange={(e) => setStatus(e.target.value as ResolveReport['status'])}>
-                <option value="actioned">Actioned (prompt fix, eval case, or account action)</option>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as ResolveReport['status'])}
+              >
+                <option value="actioned">
+                  Actioned (prompt fix, eval case, or account action)
+                </option>
                 <option value="triaged">Triaged (needs follow-up)</option>
                 <option value="dismissed">Dismissed (no issue found)</option>
               </select>
             </label>
             <label>
               Notes
-              <textarea value={resolution} onChange={(e) => setResolution(e.target.value)} minLength={3} required placeholder="What you found and what you did" />
+              <textarea
+                value={resolution}
+                onChange={(e) => setResolution(e.target.value)}
+                minLength={3}
+                required
+                placeholder="What you found and what you did"
+              />
             </label>
-            {resolve.isError ? <div className="error">{(resolve.error as Error).message}</div> : null}
+            {resolve.isError ? (
+              <div className="error">{(resolve.error as Error).message}</div>
+            ) : null}
             {resolve.isSuccess ? <div className="notice">Saved.</div> : null}
             <button type="submit" disabled={resolve.isPending || resolution.trim().length < 3}>
               {resolve.isPending ? 'Saving…' : 'Save resolution'}

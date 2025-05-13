@@ -1,4 +1,9 @@
-import { apiErrorSchema, ErrorCode, RETRYABLE_CODES, type ErrorCode as Code } from '@bot-friend/shared';
+import {
+  apiErrorSchema,
+  ErrorCode,
+  RETRYABLE_CODES,
+  type ErrorCode as Code,
+} from '@bot-friend/shared';
 import { config } from '../config';
 import { useSession } from '../session';
 
@@ -36,7 +41,11 @@ export async function toApiError(res: Response): Promise<ApiClientError> {
     const e = parsed.data.error;
     return new ApiClientError(res.status, e.code, e.message, e.retryAfterSeconds, e.details);
   }
-  return new ApiClientError(res.status, res.status >= 500 ? ErrorCode.Internal : ErrorCode.ValidationFailed, 'Something went wrong. Try again.');
+  return new ApiClientError(
+    res.status,
+    res.status >= 500 ? ErrorCode.Internal : ErrorCode.ValidationFailed,
+    'Something went wrong. Try again.',
+  );
 }
 
 /** Session expired or revoked: drop it so the app routes back to sign-in. */
@@ -60,7 +69,11 @@ export async function api<T>(
       headers: {
         accept: 'application/json',
         ...(body !== undefined ? { 'content-type': 'application/json' } : {}),
-        ...(opts.auth === false ? {} : opts.token ? { authorization: `Bearer ${opts.token}` } : authHeaders()),
+        ...(opts.auth === false
+          ? {}
+          : opts.token
+            ? { authorization: `Bearer ${opts.token}` }
+            : authHeaders()),
       },
       body: body === undefined ? undefined : JSON.stringify(body),
     });

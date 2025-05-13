@@ -8,7 +8,13 @@ export interface RealtimeSecret {
 }
 
 export interface RealtimeProvider {
-  createClientSecret(opts: { instructions: string; model: string; voice: string; ttlSeconds: number; safetyIdentifier: string }): Promise<RealtimeSecret>;
+  createClientSecret(opts: {
+    instructions: string;
+    model: string;
+    voice: string;
+    ttlSeconds: number;
+    safetyIdentifier: string;
+  }): Promise<RealtimeSecret>;
 }
 
 export const REALTIME_PROVIDER = Symbol('REALTIME_PROVIDER');
@@ -21,10 +27,20 @@ export class OpenAiRealtimeProvider implements RealtimeProvider {
   private readonly openai: OpenAI;
 
   constructor(config: AppConfig) {
-    this.openai = new OpenAI({ apiKey: config.env.OPENAI_API_KEY, baseURL: config.env.OPENAI_BASE_URL, timeout: 10_000 });
+    this.openai = new OpenAI({
+      apiKey: config.env.OPENAI_API_KEY,
+      baseURL: config.env.OPENAI_BASE_URL,
+      timeout: 10_000,
+    });
   }
 
-  async createClientSecret({ instructions, model, voice, ttlSeconds, safetyIdentifier }: Parameters<RealtimeProvider['createClientSecret']>[0]) {
+  async createClientSecret({
+    instructions,
+    model,
+    voice,
+    ttlSeconds,
+    safetyIdentifier,
+  }: Parameters<RealtimeProvider['createClientSecret']>[0]) {
     try {
       const res = await this.openai.realtime.clientSecrets.create(
         {
@@ -49,6 +65,9 @@ export class OpenAiRealtimeProvider implements RealtimeProvider {
 /** Offline stand-in: returns a fake secret so the voice UI can be built and tested. */
 export class MockRealtimeProvider implements RealtimeProvider {
   async createClientSecret({ ttlSeconds }: { ttlSeconds: number }) {
-    return { value: `ek_mock_${Math.random().toString(36).slice(2)}`, expiresAt: new Date(Date.now() + ttlSeconds * 1000) };
+    return {
+      value: `ek_mock_${Math.random().toString(36).slice(2)}`,
+      expiresAt: new Date(Date.now() + ttlSeconds * 1000),
+    };
   }
 }

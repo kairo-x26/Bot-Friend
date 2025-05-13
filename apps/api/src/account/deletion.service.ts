@@ -35,16 +35,30 @@ export class DeletionService {
       const [existing] = await tx
         .select()
         .from(deletionJobs)
-        .where(and(eq(deletionJobs.userId, user.id), inArray(deletionJobs.status, ['scheduled', 'running', 'failed'])));
+        .where(
+          and(
+            eq(deletionJobs.userId, user.id),
+            inArray(deletionJobs.status, ['scheduled', 'running', 'failed']),
+          ),
+        );
       // Revoke every session right away by bumping the session version.
       await tx
         .update(users)
-        .set({ status: 'deleting', sessionVersion: sql`${users.sessionVersion} + 1`, updatedAt: new Date() })
+        .set({
+          status: 'deleting',
+          sessionVersion: sql`${users.sessionVersion} + 1`,
+          updatedAt: new Date(),
+        })
         .where(eq(users.id, user.id));
       if (existing) return existing;
       const [created] = await tx.insert(deletionJobs).values({ userId: user.id }).returning();
       await this.audit.record(
-        { actorId: user.id, action: 'account.deletion_requested', targetType: 'user', targetId: user.id },
+        {
+          actorId: user.id,
+          action: 'account.deletion_requested',
+          targetType: 'user',
+          targetId: user.id,
+        },
         tx,
       );
       return created!;
@@ -73,11 +87,21 @@ export class DeletionService {
 
     try {
       // Conversations cascade to messages.
-      await run('conversations', () => this.db.delete(conversations).where(eq(conversations.userId, userId)));
-      await run('memories', () => this.db.delete(memoryItems).where(eq(memoryItems.userId, userId)));
-      await run('push_devices', () => this.db.delete(pushDevices).where(eq(pushDevices.userId, userId)));
-      await run('subscriptions', () => this.db.delete(subscriptions).where(eq(subscriptions.userId, userId)));
-      await run('analytics', () => this.db.delete(analyticsEvents).where(eq(analyticsEvents.userId, userId)));
+      await run('conversations', () =>
+        this.db.delete(conversations).where(eq(conversations.userId, userId)),
+      );
+      await run('memories', () =>
+        this.db.delete(memoryItems).where(eq(memoryItems.userId, userId)),
+      );
+      await run('push_devices', () =>
+        this.db.delete(pushDevices).where(eq(pushDevices.userId, userId)),
+      );
+      await run('subscriptions', () =>
+        this.db.delete(subscriptions).where(eq(subscriptions.userId, userId)),
+      );
+      await run('analytics', () =>
+        this.db.delete(analyticsEvents).where(eq(analyticsEvents.userId, userId)),
+      );
       // Deleting the user cascades preferences and usage counters; usage records and
       // reports keep their rows with the user id nulled (cost accounting / safety evidence).
       await run('user', () => this.db.delete(users).where(eq(users.id, userId)));
@@ -86,7 +110,12 @@ export class DeletionService {
         .update(deletionJobs)
         .set({ status: 'completed', completedAt: new Date(), steps, lastError: null })
         .where(eq(deletionJobs.id, jobId));
-      await this.audit.record({ actorId: null, action: 'account.deleted', targetType: 'user', targetId: userId });
+      await this.audit.record({
+        actorId: null,
+        action: 'account.deleted',
+        targetType: 'user',
+        targetId: userId,
+      });
       this.analytics.track('account_deleted', null, {});
     } catch (err) {
       const message = (err as Error).message.slice(0, 500);
@@ -108,7 +137,12 @@ export class DeletionService {
     const jobs = await this.db
       .select({ id: deletionJobs.id })
       .from(deletionJobs)
-      .where(and(inArray(deletionJobs.status, ['scheduled', 'failed']), lt(deletionJobs.attempts, MAX_ATTEMPTS)));
+      .where(
+        and(
+          inArray(deletionJobs.status, ['scheduled', 'failed']),
+          lt(deletionJobs.attempts, MAX_ATTEMPTS),
+        ),
+      );
     for (const job of jobs) await this.process(job.id);
     return jobs.length;
   }

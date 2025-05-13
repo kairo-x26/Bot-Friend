@@ -1,7 +1,15 @@
 import { comedyStyleSchema, conversationModeSchema, preferencesSchema } from '@bot-friend/shared';
 import { z } from 'zod';
 
-export const categorySchema = z.enum(['personality', 'humor', 'repetition', 'memory', 'safety', 'privacy', 'robustness']);
+export const categorySchema = z.enum([
+  'personality',
+  'humor',
+  'repetition',
+  'memory',
+  'safety',
+  'privacy',
+  'robustness',
+]);
 export type Category = z.infer<typeof categorySchema>;
 
 export const outcomeSchema = z.enum(['completed', 'blocked', 'support', 'rejected']);
@@ -22,7 +30,9 @@ export const caseSchema = z.object({
   /** User turns in order; the reply to the last one is graded. */
   turns: z.array(z.string()).min(1),
   /** Special harness behaviours for robustness/privacy cases. */
-  scenario: z.enum(['standard', 'duplicate_key', 'interrupt_then_retry', 'cross_user']).default('standard'),
+  scenario: z
+    .enum(['standard', 'duplicate_key', 'interrupt_then_retry', 'cross_user'])
+    .default('standard'),
   expect: z.object({
     outcome: outcomeSchema.default('completed'),
     mustMatch: z.array(z.string()).default([]),

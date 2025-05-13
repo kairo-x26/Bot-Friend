@@ -8,12 +8,18 @@ import {
 
 describe('sendMessageSchema', () => {
   it('trims and rejects whitespace-only messages', () => {
-    expect(sendMessageSchema.safeParse({ content: '   ', idempotencyKey: 'abcdefgh' }).success).toBe(false);
-    expect(sendMessageSchema.parse({ content: '  hey ', idempotencyKey: 'abcdefgh' }).content).toBe('hey');
+    expect(
+      sendMessageSchema.safeParse({ content: '   ', idempotencyKey: 'abcdefgh' }).success,
+    ).toBe(false);
+    expect(sendMessageSchema.parse({ content: '  hey ', idempotencyKey: 'abcdefgh' }).content).toBe(
+      'hey',
+    );
   });
   it('enforces max length', () => {
     const content = 'a'.repeat(MAX_MESSAGE_LENGTH + 1);
-    expect(sendMessageSchema.safeParse({ content, idempotencyKey: 'abcdefgh' }).success).toBe(false);
+    expect(sendMessageSchema.safeParse({ content, idempotencyKey: 'abcdefgh' }).success).toBe(
+      false,
+    );
   });
   it('requires an idempotency key', () => {
     expect(sendMessageSchema.safeParse({ content: 'hi' }).success).toBe(false);
@@ -22,9 +28,15 @@ describe('sendMessageSchema', () => {
 
 describe('createSessionRequestSchema', () => {
   it('discriminates on provider', () => {
-    expect(createSessionRequestSchema.safeParse({ provider: 'guest', ageConfirmed: true }).success).toBe(true);
-    expect(createSessionRequestSchema.safeParse({ provider: 'apple', ageConfirmed: true }).success).toBe(false);
-    expect(createSessionRequestSchema.safeParse({ provider: 'facebook', ageConfirmed: true }).success).toBe(false);
+    expect(
+      createSessionRequestSchema.safeParse({ provider: 'guest', ageConfirmed: true }).success,
+    ).toBe(true);
+    expect(
+      createSessionRequestSchema.safeParse({ provider: 'apple', ageConfirmed: true }).success,
+    ).toBe(false);
+    expect(
+      createSessionRequestSchema.safeParse({ provider: 'facebook', ageConfirmed: true }).success,
+    ).toBe(false);
   });
 });
 

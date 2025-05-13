@@ -40,7 +40,12 @@ afterAll(() => t.close());
 describe('POST /v1/conversations/:id/messages/stream', () => {
   it('streams started → deltas → completed and persists both messages', async () => {
     const convo = await newConversation(t, token);
-    const res = await streamMessage(t, token, convo.id, 'I have 47 things to do today and zero motivation.');
+    const res = await streamMessage(
+      t,
+      token,
+      convo.id,
+      'I have 47 things to do today and zero motivation.',
+    );
 
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toMatch(/text\/event-stream/);
@@ -68,15 +73,22 @@ describe('POST /v1/conversations/:id/messages/stream', () => {
     expect(detail.json.title.length).toBeLessThanOrEqual(48);
     expect(detail.json.lastMessagePreview).toMatch(/to-do list/);
 
-    const usage = await t.db.select().from(usageRecords).where(eq(usageRecords.messageId, done.message.id));
+    const usage = await t.db
+      .select()
+      .from(usageRecords)
+      .where(eq(usageRecords.messageId, done.message.id));
     expect(usage).toHaveLength(1);
     expect(usage[0]!.outputTokens).toBeGreaterThan(0);
   });
 
   it('replays instead of duplicating when the same idempotency key is resent', async () => {
     const convo = await newConversation(t, token);
-    const first = await streamMessage(t, token, convo.id, 'hello!', { idempotencyKey: 'key-replay-1' });
-    const second = await streamMessage(t, token, convo.id, 'hello!', { idempotencyKey: 'key-replay-1' });
+    const first = await streamMessage(t, token, convo.id, 'hello!', {
+      idempotencyKey: 'key-replay-1',
+    });
+    const second = await streamMessage(t, token, convo.id, 'hello!', {
+      idempotencyKey: 'key-replay-1',
+    });
 
     expect(second.events[0]).toMatchObject({ type: 'message.started', replay: true });
     expect(second.terminal).toEqual(first.terminal);
@@ -87,7 +99,9 @@ describe('POST /v1/conversations/:id/messages/stream', () => {
   it('rejects an idempotency key reused for different content', async () => {
     const convo = await newConversation(t, token);
     await streamMessage(t, token, convo.id, 'first', { idempotencyKey: 'key-mismatch-1' });
-    const res = await streamMessage(t, token, convo.id, 'second', { idempotencyKey: 'key-mismatch-1' });
+    const res = await streamMessage(t, token, convo.id, 'second', {
+      idempotencyKey: 'key-mismatch-1',
+    });
     expect(res.status).toBe(409);
     expect(res.json.error.code).toBe('idempotency_mismatch');
   });
@@ -95,13 +109,21 @@ describe('POST /v1/conversations/:id/messages/stream', () => {
   it('keeps the user message on provider failure and retries without duplicates', async () => {
     const convo = await newConversation(t, token);
     provider.failuresLeft = 1;
-    const failed = await streamMessage(t, token, convo.id, 'tell me a joke', { idempotencyKey: 'key-retry-1' });
-    expect(failed.terminal).toMatchObject({ type: 'message.failed', code: 'provider_unavailable', retryable: true });
+    const failed = await streamMessage(t, token, convo.id, 'tell me a joke', {
+      idempotencyKey: 'key-retry-1',
+    });
+    expect(failed.terminal).toMatchObject({
+      type: 'message.failed',
+      code: 'provider_unavailable',
+      retryable: true,
+    });
 
     const afterFail = await call(t, 'GET', `/v1/conversations/${convo.id}/messages`, { token });
     expect(afterFail.json.items.map((m: any) => m.status)).toEqual(['completed', 'failed']);
 
-    const retried = await streamMessage(t, token, convo.id, 'tell me a joke', { idempotencyKey: 'key-retry-1' });
+    const retried = await streamMessage(t, token, convo.id, 'tell me a joke', {
+      idempotencyKey: 'key-retry-1',
+    });
     expect(retried.terminal?.type).toBe('message.completed');
     expect(retried.events[0]).toMatchObject({ replay: false });
 
@@ -116,7 +138,9 @@ describe('POST /v1/conversations/:id/messages/stream', () => {
     provider.failuresLeft = 0;
     provider.inner = new MockProvider(20);
 
-    const pending = streamMessage(slowApp, token, convo.id, '[[long]] go on', { idempotencyKey: 'key-cancel-1' });
+    const pending = streamMessage(slowApp, token, convo.id, '[[long]] go on', {
+      idempotencyKey: 'key-cancel-1',
+    });
     let assistantId: string | undefined;
     for (let i = 0; i < 100 && !assistantId; i++) {
       await new Promise((r) => setTimeout(r, 20));
@@ -128,7 +152,12 @@ describe('POST /v1/conversations/:id/messages/stream', () => {
     }
     expect(assistantId).toBeTruthy();
     await new Promise((r) => setTimeout(r, 80));
-    const cancel = await call(t, 'POST', `/v1/conversations/${convo.id}/messages/${assistantId}/cancel`, { token });
+    const cancel = await call(
+      t,
+      'POST',
+      `/v1/conversations/${convo.id}/messages/${assistantId}/cancel`,
+      { token },
+    );
     expect(cancel.json).toEqual({ cancelled: true });
 
     const res = await pending;
@@ -150,9 +179,14 @@ describe('POST /v1/conversations/:id/messages/stream', () => {
     const other = await devLogin(t, 'intruder@example.com');
     const res = await streamMessage(t, other.accessToken, convo.id, 'hi');
     expect(res.status).toBe(404);
-    const cancel = await call(t, 'POST', `/v1/conversations/${convo.id}/messages/${convo.id}/cancel`, {
-      token: other.accessToken,
-    });
+    const cancel = await call(
+      t,
+      'POST',
+      `/v1/conversations/${convo.id}/messages/${convo.id}/cancel`,
+      {
+        token: other.accessToken,
+      },
+    );
     expect(cancel.status).toBe(404);
   });
 
@@ -167,7 +201,9 @@ describe('POST /v1/conversations/:id/messages/stream', () => {
     const convo = await newConversation(t, token);
     await streamMessage(t, token, convo.id, 'my name is Kai');
     provider.requests = [];
-    const res = await streamMessage(t, token, convo.id, 'tell me a joke', { comedyStyle: 'chaotic' });
+    const res = await streamMessage(t, token, convo.id, 'tell me a joke', {
+      comedyStyle: 'chaotic',
+    });
     const req = provider.requests[0]!;
     expect(req.input.map((m) => m.role)).toEqual(['user', 'assistant', 'user']);
     expect(req.input[0]!.content).toBe('my name is Kai');

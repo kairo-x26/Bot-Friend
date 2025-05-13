@@ -62,7 +62,9 @@ export function Queue() {
         </div>
       </div>
 
-      {query.isError ? <div className="error">Couldn’t load reports. {(query.error as Error).message}</div> : null}
+      {query.isError ? (
+        <div className="error">Couldn’t load reports. {(query.error as Error).message}</div>
+      ) : null}
       {query.isSuccess && items.length === 0 ? (
         <div className="empty">
           <h2>Nothing waiting</h2>
@@ -73,7 +75,10 @@ export function Queue() {
       <ul className="queue" aria-label="Reports">
         {items.map((r) => (
           <li key={r.id}>
-            <Link to={`/reports/${r.id}`} aria-label={`${PRIORITY_LABEL[r.priority]} priority: ${CATEGORY_LABEL[r.category]}, ${age(r.createdAt)}`}>
+            <Link
+              to={`/reports/${r.id}`}
+              aria-label={`${PRIORITY_LABEL[r.priority]} priority: ${CATEGORY_LABEL[r.category]}, ${age(r.createdAt)}`}
+            >
               <span className={`prio prio-${r.priority}`} aria-hidden />
               <span>
                 <span className="row-title">{CATEGORY_LABEL[r.category]}</span>{' '}
@@ -90,7 +95,11 @@ export function Queue() {
       </ul>
       {query.hasNextPage ? (
         <p>
-          <button className="secondary" onClick={() => query.fetchNextPage()} disabled={query.isFetchingNextPage}>
+          <button
+            className="secondary"
+            onClick={() => query.fetchNextPage()}
+            disabled={query.isFetchingNextPage}
+          >
             {query.isFetchingNextPage ? 'Loading…' : 'Load more'}
           </button>
         </p>

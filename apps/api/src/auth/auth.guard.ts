@@ -20,7 +20,9 @@ export class AuthGuard implements CanActivate {
     const targets = [context.getHandler(), context.getClass()];
     if (this.reflector.getAllAndOverride<boolean>(IS_PUBLIC, targets)) return true;
 
-    const req = context.switchToHttp().getRequest<{ headers: Record<string, string | undefined>; user?: AuthUser }>();
+    const req = context
+      .switchToHttp()
+      .getRequest<{ headers: Record<string, string | undefined>; user?: AuthUser }>();
     const header = req.headers['authorization'];
     const token = header?.startsWith('Bearer ') ? header.slice(7).trim() : undefined;
     if (!token) throw ApiError.unauthenticated();

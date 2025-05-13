@@ -36,7 +36,11 @@ export class TokenService {
 
   async verify(token: string): Promise<SessionClaims | null> {
     try {
-      const { payload } = await jwtVerify(token, this.key, { issuer: ISSUER, audience: AUDIENCE, algorithms: ['HS256'] });
+      const { payload } = await jwtVerify(token, this.key, {
+        issuer: ISSUER,
+        audience: AUDIENCE,
+        algorithms: ['HS256'],
+      });
       if (typeof payload.sub !== 'string' || typeof payload['sv'] !== 'number') return null;
       return { sub: payload.sub, sv: payload['sv'], role: payload['role'] as UserRole };
     } catch {

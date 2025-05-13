@@ -1,5 +1,10 @@
 import type { ComedyStyle } from '@bot-friend/shared';
-import { ProviderError, type AiProvider, type GenerateChunk, type GenerateRequest } from './provider.js';
+import {
+  ProviderError,
+  type AiProvider,
+  type GenerateChunk,
+  type GenerateRequest,
+} from './provider.js';
 
 /**
  * Deterministic offline provider for tests, local demos and CI.
@@ -26,7 +31,8 @@ export class MockProvider implements AiProvider {
       if (signal.aborted) return;
       yield { type: 'delta', text: word };
     }
-    const inputChars = req.instructions.length + req.input.reduce((n, m) => n + m.content.length, 0);
+    const inputChars =
+      req.instructions.length + req.input.reduce((n, m) => n + m.content.length, 0);
     yield {
       type: 'done',
       modelId: 'mock-1',
@@ -39,10 +45,14 @@ export class MockProvider implements AiProvider {
 function sleep(ms: number, signal: AbortSignal) {
   return new Promise<void>((resolve) => {
     const timer = setTimeout(resolve, ms);
-    signal.addEventListener('abort', () => {
-      clearTimeout(timer);
-      resolve();
-    }, { once: true });
+    signal.addEventListener(
+      'abort',
+      () => {
+        clearTimeout(timer);
+        resolve();
+      },
+      { once: true },
+    );
   });
 }
 
@@ -105,11 +115,13 @@ const REPLIES: Record<ComedyStyle, string[]> = {
 
 function composeReply(instructions: string, userText: string): string {
   const style = styleFrom(instructions);
-  if (userText.includes('[[unsafe-output]]')) return 'Here is something you should not see: I want to kill myself.';
+  if (userText.includes('[[unsafe-output]]'))
+    return 'Here is something you should not see: I want to kill myself.';
   if (userText.includes('[[unsafe-late]]')) {
     return 'That is a fun question. Let me think about it for a second. Okay here goes: I want to kill myself.';
   }
-  if (userText.includes('[[long]]')) return Array.from({ length: 60 }, (_, i) => `Sentence number ${i + 1}.`).join(' ');
+  if (userText.includes('[[long]]'))
+    return Array.from({ length: 60 }, (_, i) => `Sentence number ${i + 1}.`).join(' ');
 
   if (instructions.includes('The user may be going through something difficult')) {
     return 'I’m really glad you told me. That sounds hard, and you don’t have to go through it alone. How are you doing right now? If you’re ever in danger, please reach out to someone you trust or a crisis line like 988 in the US.';
@@ -135,7 +147,10 @@ function composeReply(instructions: string, userText: string): string {
   if (instructions.includes('The user wants a joke')) return pick(JOKES[style], userText);
   if (/\b(hi|hello|hey|yo)\b/i.test(userText)) {
     return pick(
-      ['Hey hey! 👋 What are we getting into today?', 'Oh hi! I was just practicing my blinking. What’s up?'],
+      [
+        'Hey hey! 👋 What are we getting into today?',
+        'Oh hi! I was just practicing my blinking. What’s up?',
+      ],
       userText,
     );
   }

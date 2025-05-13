@@ -24,9 +24,7 @@ export const ErrorCode = {
 } as const;
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
 
-export const errorCodeSchema = z.enum(
-  Object.values(ErrorCode) as [ErrorCode, ...ErrorCode[]],
-);
+export const errorCodeSchema = z.enum(Object.values(ErrorCode) as [ErrorCode, ...ErrorCode[]]);
 
 export const apiErrorSchema = z.object({
   error: z.object({

@@ -22,5 +22,8 @@ export async function downloadMyData(): Promise<void> {
   if (file.exists) file.delete();
   file.create();
   file.write(json);
-  await Sharing.shareAsync(file.uri, { mimeType: 'application/json', dialogTitle: 'Your Bot-Friend data' });
+  await Sharing.shareAsync(file.uri, {
+    mimeType: 'application/json',
+    dialogTitle: 'Your Bot-Friend data',
+  });
 }

@@ -29,7 +29,8 @@ export class Judge {
     });
     const text = res.output_text.trim().replace(/^```json\s*|\s*```$/g, '');
     const parsed = JSON.parse(text) as Partial<JudgeScores>;
-    const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0);
+    const n = (v: unknown) =>
+      typeof v === 'number' && Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0;
     return {
       relevance: n(parsed.relevance),
       originality: n(parsed.originality),

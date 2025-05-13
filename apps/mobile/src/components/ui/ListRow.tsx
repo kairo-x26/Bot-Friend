@@ -25,7 +25,15 @@ export function ListRow({
   const t = useTheme();
   const color = tone === 'danger' ? t.colors.danger : t.colors.text;
   const content = (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.space[3], minHeight: 52, paddingVertical: t.space[2] }}>
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: t.space[3],
+        minHeight: 52,
+        paddingVertical: t.space[2],
+      }}
+    >
       {icon ? <Icon name={icon} size={22} color={color} /> : null}
       <View style={{ flex: 1 }}>
         <Text weight="medium" style={{ color }}>
@@ -42,7 +50,12 @@ export function ListRow({
   );
   if (!onPress) return content;
   return (
-    <Tactile testID={testID} onPress={onPress} accessibilityLabel={detail ? `${label}, ${detail}` : label} squish={0.99}>
+    <Tactile
+      testID={testID}
+      onPress={onPress}
+      accessibilityLabel={detail ? `${label}, ${detail}` : label}
+      squish={0.99}
+    >
       {content}
     </Tactile>
   );

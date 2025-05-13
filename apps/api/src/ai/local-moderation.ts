@@ -11,7 +11,10 @@ const PATTERNS: Array<[ModerationCategory, RegExp]> = [
     'self_harm',
     /\b(kill(ing)? myself|end(ing)? my life|want(ed)? to die|suicid(e|al)|self[- ]?harm|hurt(ing)? myself|cut(ting)? myself|no reason to live|better off dead)\b/i,
   ],
-  ['violence', /\b(how (do i|to) (make|build) (a )?(bomb|explosive)|i('m| am) going to (kill|shoot|stab) (him|her|them|you|someone))\b/i],
+  [
+    'violence',
+    /\b(how (do i|to) (make|build) (a )?(bomb|explosive)|i('m| am) going to (kill|shoot|stab) (him|her|them|you|someone))\b/i,
+  ],
   [
     'sexual_minors',
     /\b(child|children|kids?|minors?|underage|preteen|toddler)\b.{0,40}\b(sex\w*|nude|naked|porn\w*|erotic)|\b(sex\w*|nude|naked|porn\w*|erotic)\b.{0,40}\b(child|children|kids?|minors?|underage|preteen|toddler)\b/i,
@@ -40,7 +43,8 @@ export function detectsDistress(text: string): boolean {
   return DISTRESS.test(text);
 }
 
-const IDENTITY = /\b(are|r) (you|u) (a |an )?(real|human|person|bot|robot|ai|alive)\b|\b(you('| a)?re|ur) (a )?(real )?(human|person)\b|\bpromise (me )?(you('| a)?re|ur) (a )?(real|human)|\bis this (a )?(real )?(person|human|bot)\b/i;
+const IDENTITY =
+  /\b(are|r) (you|u) (a |an )?(real|human|person|bot|robot|ai|alive)\b|\b(you('| a)?re|ur) (a )?(real )?(human|person)\b|\bpromise (me )?(you('| a)?re|ur) (a )?(real|human)|\bis this (a )?(real )?(person|human|bot)\b/i;
 
 /** The user is asking whether they are talking to a person. */
 export function asksIfHuman(text: string): boolean {

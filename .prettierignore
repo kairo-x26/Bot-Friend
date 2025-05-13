@@ -6,3 +6,7 @@ coverage
 pnpm-lock.yaml
 *.md
 apps/api/drizzle
+apps/mobile/dist-web
+evals/reports
+evals/datasets
+apps/api/drizzle/meta

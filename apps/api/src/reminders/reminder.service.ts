@@ -1,4 +1,10 @@
-import { Inject, Injectable, Logger, type OnApplicationBootstrap, type OnApplicationShutdown } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  type OnApplicationBootstrap,
+  type OnApplicationShutdown,
+} from '@nestjs/common';
 import { and, eq, inArray, isNull, lt, or } from 'drizzle-orm';
 import { AppConfig } from '../config/config.js';
 import { DB, type Db } from '../db/database.js';
@@ -32,7 +38,10 @@ export class ReminderService implements OnApplicationBootstrap, OnApplicationShu
   onApplicationBootstrap() {
     const minutes = this.config.env.REMINDER_SWEEP_MINUTES;
     if (minutes <= 0 || this.push.name === 'recording') return;
-    this.timer = setInterval(() => void this.tick().catch((e: Error) => this.logger.error(e.message)), minutes * 60_000);
+    this.timer = setInterval(
+      () => void this.tick().catch((e: Error) => this.logger.error(e.message)),
+      minutes * 60_000,
+    );
     this.timer.unref();
   }
 
@@ -48,7 +57,9 @@ export class ReminderService implements OnApplicationBootstrap, OnApplicationShu
   }
 
   async removeDevice(userId: string, token: string) {
-    await this.db.delete(pushDevices).where(and(eq(pushDevices.userId, userId), eq(pushDevices.token, token)));
+    await this.db
+      .delete(pushDevices)
+      .where(and(eq(pushDevices.userId, userId), eq(pushDevices.token, token)));
   }
 
   async tick(now = new Date()): Promise<{ sent: number }> {
@@ -69,16 +80,23 @@ export class ReminderService implements OnApplicationBootstrap, OnApplicationShu
       );
     let sent = 0;
     for (const { userId } of due) {
-      const devices = await this.db.select().from(pushDevices).where(eq(pushDevices.userId, userId));
+      const devices = await this.db
+        .select()
+        .from(pushDevices)
+        .where(eq(pushDevices.userId, userId));
       if (devices.length === 0) continue;
       // Mark first so a crash mid-send can never lead to a second reminder today.
-      await this.db.update(userPreferences).set({ lastReminderAt: now }).where(eq(userPreferences.userId, userId));
+      await this.db
+        .update(userPreferences)
+        .set({ lastReminderAt: now })
+        .where(eq(userPreferences.userId, userId));
       const line = REMINDER_LINES[(now.getUTCDate() + sent) % REMINDER_LINES.length]!;
       const { invalidTokens } = await this.push.send(
         devices.map((d) => d.token),
         { title: 'Bot-Friend', body: line, data: { kind: 'reminder' } },
       );
-      if (invalidTokens.length) await this.db.delete(pushDevices).where(inArray(pushDevices.token, invalidTokens));
+      if (invalidTokens.length)
+        await this.db.delete(pushDevices).where(inArray(pushDevices.token, invalidTokens));
       sent++;
     }
     return { sent };

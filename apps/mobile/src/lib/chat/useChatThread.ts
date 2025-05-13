@@ -5,7 +5,13 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { ApiClientError, api } from '../api/client';
 import { fetchOlderMessages, touchConversation } from '../api/hooks';
 import { streamMessage } from '../api/stream';
-import { chatReducer, initialChatState, latestSuggestions, moodFor, type ChatItem } from './reducer';
+import {
+  chatReducer,
+  initialChatState,
+  latestSuggestions,
+  moodFor,
+  type ChatItem,
+} from './reducer';
 
 export interface QuotaNotice {
   message: string;
@@ -32,7 +38,12 @@ export function useChatThread(conversationId: string, detail: ConversationDetail
   useEffect(() => () => abortRef.current?.abort(), []);
 
   const run = useCallback(
-    async (localKey: string, content: string, idempotencyKey: string, comedyStyle?: ComedyStyle) => {
+    async (
+      localKey: string,
+      content: string,
+      idempotencyKey: string,
+      comedyStyle?: ComedyStyle,
+    ) => {
       const controller = new AbortController();
       abortRef.current = controller;
       try {
@@ -46,7 +57,8 @@ export function useChatThread(conversationId: string, detail: ConversationDetail
       } catch (err) {
         if (controller.signal.aborted) return;
         if (err instanceof ApiClientError && err.code === ErrorCode.QuotaExceeded) {
-          const guest = (err.details as { entitlement?: string } | undefined)?.entitlement === 'guest';
+          const guest =
+            (err.details as { entitlement?: string } | undefined)?.entitlement === 'guest';
           setQuota({ message: err.message, guest });
         }
         const e = err instanceof ApiClientError ? err : null;
@@ -95,13 +107,26 @@ export function useChatThread(conversationId: string, detail: ConversationDetail
     const id = state.streamingKey;
     if (!id) return;
     try {
-      const res = await api<{ cancelled: boolean }>('POST', `/v1/conversations/${conversationId}/messages/${id}/cancel`);
+      const res = await api<{ cancelled: boolean }>(
+        'POST',
+        `/v1/conversations/${conversationId}/messages/${id}/cancel`,
+      );
       if (!res.cancelled) abortRef.current?.abort();
     } catch {
       abortRef.current?.abort();
     }
     if (abortRef.current?.signal.aborted) {
-      dispatch({ type: 'event', localKey: '', event: { type: 'message.failed', assistantMessageId: id, code: 'cancelled', message: 'Stopped.', retryable: true } });
+      dispatch({
+        type: 'event',
+        localKey: '',
+        event: {
+          type: 'message.failed',
+          assistantMessageId: id,
+          code: 'cancelled',
+          message: 'Stopped.',
+          retryable: true,
+        },
+      });
     }
   }, [conversationId, state.streamingKey]);
 

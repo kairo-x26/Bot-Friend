@@ -8,7 +8,9 @@ export interface Cursor {
 }
 
 export function encodeCursor(at: Date, id: string): string {
-  return Buffer.from(JSON.stringify({ t: at.toISOString(), id } satisfies Cursor)).toString('base64url');
+  return Buffer.from(JSON.stringify({ t: at.toISOString(), id } satisfies Cursor)).toString(
+    'base64url',
+  );
 }
 
 export function decodeCursor(raw: string | undefined): { at: Date; id: string } | null {

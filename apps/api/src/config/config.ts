@@ -1,8 +1,6 @@
 import { z } from 'zod';
 
-const bool = z
-  .enum(['true', 'false', '1', '0'])
-  .transform((v) => v === 'true' || v === '1');
+const bool = z.enum(['true', 'false', '1', '0']).transform((v) => v === 'true' || v === '1');
 const csv = z
   .string()
   .default('')
@@ -29,7 +27,11 @@ const envSchema = z.object({
   REDIS_URL: z.string().optional(),
 
   JWT_SECRET: z.string().min(32).default('dev-only-secret-change-me-dev-only-secret'),
-  SESSION_TTL_HOURS: z.coerce.number().int().positive().default(24 * 30),
+  SESSION_TTL_HOURS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(24 * 30),
   AUTH_DEV_LOGIN: bool.default(false),
   /** Dev-login emails that get the admin role on first sign-in (local moderation testing). */
   DEV_ADMIN_EMAILS: csv,
@@ -96,9 +98,11 @@ export class AppConfig {
     }
     const env = parsed.data;
     if (env.NODE_ENV === 'production') {
-      if (env.JWT_SECRET.startsWith('dev-only')) throw new Error('JWT_SECRET must be set in production');
+      if (env.JWT_SECRET.startsWith('dev-only'))
+        throw new Error('JWT_SECRET must be set in production');
       if (env.AUTH_DEV_LOGIN) throw new Error('AUTH_DEV_LOGIN cannot be enabled in production');
-      if (env.AI_PROVIDER === 'openai' && !env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is required');
+      if (env.AI_PROVIDER === 'openai' && !env.OPENAI_API_KEY)
+        throw new Error('OPENAI_API_KEY is required');
     }
     return new AppConfig(env);
   }

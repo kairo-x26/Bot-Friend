@@ -13,10 +13,16 @@ export function relativeTime(iso: string, now = Date.now()): string {
 }
 
 /** Local hour (0-23) → the UTC hour the server schedules against. */
-export function localHourToUtc(hour: number, offsetMinutes = new Date().getTimezoneOffset()): number {
-  return (((hour + offsetMinutes / 60) % 24) + 24) % 24 | 0;
+export function localHourToUtc(
+  hour: number,
+  offsetMinutes = new Date().getTimezoneOffset(),
+): number {
+  return ((((hour + offsetMinutes / 60) % 24) + 24) % 24) | 0;
 }
 
-export function utcHourToLocal(hour: number, offsetMinutes = new Date().getTimezoneOffset()): number {
-  return (((hour - offsetMinutes / 60) % 24) + 24) % 24 | 0;
+export function utcHourToLocal(
+  hour: number,
+  offsetMinutes = new Date().getTimezoneOffset(),
+): number {
+  return ((((hour - offsetMinutes / 60) % 24) + 24) % 24) | 0;
 }

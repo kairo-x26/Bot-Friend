@@ -1,4 +1,10 @@
-import { Inject, Injectable, Logger, type OnApplicationBootstrap, type OnApplicationShutdown } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  type OnApplicationBootstrap,
+  type OnApplicationShutdown,
+} from '@nestjs/common';
 import { and, eq, lt } from 'drizzle-orm';
 import { AppConfig } from '../config/config.js';
 import { DB, type Db } from '../db/database.js';
@@ -43,7 +49,9 @@ export class RetentionService implements OnApplicationBootstrap, OnApplicationSh
   async sweep(now = new Date()): Promise<SweepResult> {
     const day = 86_400_000;
     const guestCutoff = new Date(now.getTime() - this.config.env.GUEST_RETENTION_DAYS * day);
-    const analyticsCutoff = new Date(now.getTime() - this.config.env.ANALYTICS_RETENTION_DAYS * day);
+    const analyticsCutoff = new Date(
+      now.getTime() - this.config.env.ANALYTICS_RETENTION_DAYS * day,
+    );
     const streamCutoff = new Date(now.getTime() - 5 * 60_000);
 
     const guests = await this.db
@@ -70,7 +78,8 @@ export class RetentionService implements OnApplicationBootstrap, OnApplicationSh
       deletionJobsRetried: retried,
       subscriptionsExpired: expired,
     };
-    if (Object.values(result).some((n) => n > 0)) this.logger.log(`Retention sweep: ${JSON.stringify(result)}`);
+    if (Object.values(result).some((n) => n > 0))
+      this.logger.log(`Retention sweep: ${JSON.stringify(result)}`);
     return result;
   }
 }

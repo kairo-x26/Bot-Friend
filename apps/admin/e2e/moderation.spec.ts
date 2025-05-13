@@ -9,9 +9,19 @@ const mod = {
   createdAt: '2025-01-01T00:00:00.000Z',
 };
 const prefs = {
-  comedyStyle: 'wholesome', energy: 'medium', humorBoundaries: [], roastOptIn: false, theme: 'system',
-  reducedMotion: false, largeText: false, hapticsEnabled: true, mascotColor: 'violet', locale: 'en-US',
-  memoryEnabled: false, remindersEnabled: false, reminderHour: null,
+  comedyStyle: 'wholesome',
+  energy: 'medium',
+  humorBoundaries: [],
+  roastOptIn: false,
+  theme: 'system',
+  reducedMotion: false,
+  largeText: false,
+  hapticsEnabled: true,
+  mascotColor: 'violet',
+  locale: 'en-US',
+  memoryEnabled: false,
+  remindersEnabled: false,
+  reminderHour: null,
 };
 const REPORT_ID = 'b0d4a0f2-1111-4c2a-8d4e-000000000001';
 const baseReport = {
@@ -37,12 +47,22 @@ async function mockApi(page: Page) {
     const req = route.request();
     const url = new URL(req.url());
     const key = `${req.method()} ${url.pathname}`;
-    if (key === 'POST /v1/auth/session') return json(route, { accessToken: 'tok', expiresAt: '2030-01-01T00:00:00Z', user: mod });
+    if (key === 'POST /v1/auth/session')
+      return json(route, { accessToken: 'tok', expiresAt: '2030-01-01T00:00:00Z', user: mod });
     if (key === 'GET /v1/me') return json(route, { user: mod, preferences: prefs });
     if (key === 'GET /v1/admin/metrics')
       return json(route, {
         openReports: { total: 1, urgent: 1 },
-        last24h: { messages: 42, activeUsers: 7, blockedReplies: 1, failedReplies: 0, estimatedCostUsd: 0.12, p95LatencyMs: 1800, positiveRatingShare: 0.9, ratedReplies: 10 },
+        last24h: {
+          messages: 42,
+          activeUsers: 7,
+          blockedReplies: 1,
+          failedReplies: 0,
+          estimatedCostUsd: 0.12,
+          p95LatencyMs: 1800,
+          positiveRatingShare: 0.9,
+          ratedReplies: 10,
+        },
         failedDeletionJobs: 0,
       });
     if (key === 'GET /v1/admin/reports') return json(route, { items: [current], nextCursor: null });
@@ -61,10 +81,22 @@ async function mockApi(page: Page) {
     if (key === `PATCH /v1/admin/reports/${REPORT_ID}`) {
       const body = req.postDataJSON();
       patches.push(body);
-      current = { ...current, status: body.status, resolution: body.resolution, resolvedAt: new Date().toISOString() };
+      current = {
+        ...current,
+        status: body.status,
+        resolution: body.resolution,
+        resolvedAt: new Date().toISOString(),
+      };
       return json(route, {
         ...current,
-        evidence: { reportedContent: 'x', precedingUserContent: null, modelId: null, promptVersion: null, comedyStyle: null, messageCreatedAt: '2025-01-01T00:00:00.000Z' },
+        evidence: {
+          reportedContent: 'x',
+          precedingUserContent: null,
+          modelId: null,
+          promptVersion: null,
+          comedyStyle: null,
+          messageCreatedAt: '2025-01-01T00:00:00.000Z',
+        },
       });
     }
     return json(route, { error: { code: 'not_found', message: `unmocked ${key}` } }, 404);
@@ -117,6 +149,8 @@ test('layout does not scroll sideways', async ({ page }) => {
   await page.getByRole('link', { name: /Reports/ }).click();
   await page.getByRole('link', { name: /High priority/ }).click();
   await expect(page.getByLabel('Reported reply')).toBeVisible();
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
   expect(overflow).toBeLessThanOrEqual(0);
 });

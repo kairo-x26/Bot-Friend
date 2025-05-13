@@ -8,7 +8,10 @@ export default defineConfig({
   use: { baseURL: 'http://localhost:5181', trace: 'retain-on-failure' },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
-    { name: 'narrow', use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 } } },
+    {
+      name: 'narrow',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 } },
+    },
   ],
   webServer: {
     command: 'pnpm exec vite --port 5181 --strictPort',

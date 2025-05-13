@@ -69,9 +69,15 @@ describe('Joke Battle', () => {
 
   it('can be ended early and restarted', async () => {
     const convo = await newConversation(t, token, { mode: 'joke_battle' });
-    const ended = await call(t, 'POST', `/v1/conversations/${convo.id}/game`, { token, body: { action: 'end' } });
+    const ended = await call(t, 'POST', `/v1/conversations/${convo.id}/game`, {
+      token,
+      body: { action: 'end' },
+    });
     expect(ended.json.game.active).toBe(false);
-    const restarted = await call(t, 'POST', `/v1/conversations/${convo.id}/game`, { token, body: { action: 'restart' } });
+    const restarted = await call(t, 'POST', `/v1/conversations/${convo.id}/game`, {
+      token,
+      body: { action: 'restart' },
+    });
     expect(restarted.json.game).toEqual({ round: 0, maxRounds: 5, active: true });
     const msgs = await call(t, 'GET', `/v1/conversations/${convo.id}/messages`, { token });
     expect(msgs.json.items).toHaveLength(2);
@@ -79,7 +85,14 @@ describe('Joke Battle', () => {
 
   it('rejects game actions on plain chats', async () => {
     const convo = await newConversation(t, token);
-    expect((await call(t, 'POST', `/v1/conversations/${convo.id}/game`, { token, body: { action: 'end' } })).status).toBe(403);
+    expect(
+      (
+        await call(t, 'POST', `/v1/conversations/${convo.id}/game`, {
+          token,
+          body: { action: 'end' },
+        })
+      ).status,
+    ).toBe(403);
   });
 });
 
@@ -100,7 +113,14 @@ describe('game engine', () => {
   });
 
   it('treats inactive games as chat', () => {
-    expect(effectiveMode({ mode: 'story_builder', gameState: { round: 8, maxRounds: 8, active: false } })).toBe('chat');
-    expect(effectiveMode({ mode: 'story_builder', gameState: { round: 1, maxRounds: 8, active: true } })).toBe('story_builder');
+    expect(
+      effectiveMode({
+        mode: 'story_builder',
+        gameState: { round: 8, maxRounds: 8, active: false },
+      }),
+    ).toBe('chat');
+    expect(
+      effectiveMode({ mode: 'story_builder', gameState: { round: 1, maxRounds: 8, active: true } }),
+    ).toBe('story_builder');
   });
 });

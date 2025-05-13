@@ -22,7 +22,13 @@ import type {
   SessionResponse,
   UsageResponse,
 } from '@bot-friend/shared';
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from '@tanstack/react-query';
 import { usePrefs } from '../prefs';
 import { useSession } from '../session';
 import { api } from './client';
@@ -64,7 +70,8 @@ export function useUpdatePreferences() {
   const patchLocal = usePrefs((s) => s.patch);
   const hydrate = usePrefs((s) => s.hydrate);
   return useMutation({
-    mutationFn: (patch: Partial<Preferences>) => api<Preferences>('PATCH', '/v1/me/preferences', patch),
+    mutationFn: (patch: Partial<Preferences>) =>
+      api<Preferences>('PATCH', '/v1/me/preferences', patch),
     onMutate: (patch) => {
       const previous = usePrefs.getState().prefs;
       patchLocal(patch);
@@ -87,7 +94,10 @@ export function useConversations() {
     enabled: signedIn,
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam }) =>
-      api<ConversationPage>('GET', `/v1/conversations?limit=20${pageParam ? `&cursor=${encodeURIComponent(pageParam)}` : ''}`),
+      api<ConversationPage>(
+        'GET',
+        `/v1/conversations?limit=20${pageParam ? `&cursor=${encodeURIComponent(pageParam)}` : ''}`,
+      ),
     getNextPageParam: (last) => last.nextCursor ?? undefined,
   });
 }
@@ -100,7 +110,10 @@ export function useConversation(id: string) {
 }
 
 export function fetchOlderMessages(id: string, cursor: string) {
-  return api<MessagePage>('GET', `/v1/conversations/${id}/messages?limit=30&cursor=${encodeURIComponent(cursor)}`);
+  return api<MessagePage>(
+    'GET',
+    `/v1/conversations/${id}/messages?limit=30&cursor=${encodeURIComponent(cursor)}`,
+  );
 }
 
 export function useCreateConversation() {
@@ -125,7 +138,8 @@ export function useDeleteConversation() {
 export function useGameAction(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (action: 'end' | 'restart') => api<Conversation>('POST', `/v1/conversations/${id}/game`, { action }),
+    mutationFn: (action: 'end' | 'restart') =>
+      api<Conversation>('POST', `/v1/conversations/${id}/game`, { action }),
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.conversation(id) }),
   });
 }
@@ -140,23 +154,32 @@ export function useGames() {
 
 export function useUsage() {
   const signedIn = useSession((s) => s.status === 'signedIn');
-  return useQuery({ queryKey: qk.usage, enabled: signedIn, queryFn: () => api<UsageResponse>('GET', '/v1/usage') });
+  return useQuery({
+    queryKey: qk.usage,
+    enabled: signedIn,
+    queryFn: () => api<UsageResponse>('GET', '/v1/usage'),
+  });
 }
 
 export function useReport() {
-  return useMutation({ mutationFn: (body: CreateReport) => api<Report>('POST', '/v1/reports', body) });
+  return useMutation({
+    mutationFn: (body: CreateReport) => api<Report>('POST', '/v1/reports', body),
+  });
 }
 
 export function useReact() {
   return useMutation({
     mutationFn: ({ messageId, reaction }: { messageId: string; reaction: Reaction | null }) =>
-      api<{ reaction: Reaction | null }>('POST', `/v1/messages/${messageId}/reaction`, { reaction }),
+      api<{ reaction: Reaction | null }>('POST', `/v1/messages/${messageId}/reaction`, {
+        reaction,
+      }),
   });
 }
 
 export function useDeleteAccount() {
   return useMutation({
-    mutationFn: () => api<AccountDeletionResponse>('POST', '/v1/account/deletion', { confirm: 'DELETE' }),
+    mutationFn: () =>
+      api<AccountDeletionResponse>('POST', '/v1/account/deletion', { confirm: 'DELETE' }),
   });
 }
 
@@ -183,14 +206,28 @@ export function useMemoryMutations() {
   const qc = useQueryClient();
   const done = () => qc.invalidateQueries({ queryKey: qk.memories });
   return {
-    add: useMutation({ mutationFn: (content: string) => api<Memory>('POST', '/v1/memories', { content }), onSuccess: done }),
-    approve: useMutation({ mutationFn: (id: string) => api<Memory>('PATCH', `/v1/memories/${id}`, { status: 'approved' }), onSuccess: done }),
-    edit: useMutation({
-      mutationFn: ({ id, content }: { id: string; content: string }) => api<Memory>('PATCH', `/v1/memories/${id}`, { content }),
+    add: useMutation({
+      mutationFn: (content: string) => api<Memory>('POST', '/v1/memories', { content }),
       onSuccess: done,
     }),
-    remove: useMutation({ mutationFn: (id: string) => api<void>('DELETE', `/v1/memories/${id}`), onSuccess: done }),
-    eraseAll: useMutation({ mutationFn: () => api<{ deleted: number }>('DELETE', '/v1/memories'), onSuccess: done }),
+    approve: useMutation({
+      mutationFn: (id: string) =>
+        api<Memory>('PATCH', `/v1/memories/${id}`, { status: 'approved' }),
+      onSuccess: done,
+    }),
+    edit: useMutation({
+      mutationFn: ({ id, content }: { id: string; content: string }) =>
+        api<Memory>('PATCH', `/v1/memories/${id}`, { content }),
+      onSuccess: done,
+    }),
+    remove: useMutation({
+      mutationFn: (id: string) => api<void>('DELETE', `/v1/memories/${id}`),
+      onSuccess: done,
+    }),
+    eraseAll: useMutation({
+      mutationFn: () => api<{ deleted: number }>('DELETE', '/v1/memories'),
+      onSuccess: done,
+    }),
   };
 }
 
@@ -205,13 +242,17 @@ export function useSearch(q: string) {
 }
 
 export function useSubscription() {
-  return useQuery({ queryKey: qk.subscription, queryFn: () => api<SubscriptionStatus>('GET', '/v1/billing/subscription') });
+  return useQuery({
+    queryKey: qk.subscription,
+    queryFn: () => api<SubscriptionStatus>('GET', '/v1/billing/subscription'),
+  });
 }
 
 export function useVerifyPurchase() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: VerifyPurchase) => api<SubscriptionStatus>('POST', '/v1/billing/verify', body),
+    mutationFn: (body: VerifyPurchase) =>
+      api<SubscriptionStatus>('POST', '/v1/billing/verify', body),
     onSuccess: (data) => {
       qc.setQueryData(qk.subscription, data);
       void qc.invalidateQueries({ queryKey: qk.usage });

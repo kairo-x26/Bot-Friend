@@ -44,7 +44,11 @@ export function Chip({
         borderColor: selected ? t.colors.primary : base.border,
       }}
     >
-      <Text variant="callout" weight="medium" style={{ color: selected ? t.colors.textOnPrimary : t.colors.text }}>
+      <Text
+        variant="callout"
+        weight="medium"
+        style={{ color: selected ? t.colors.textOnPrimary : t.colors.text }}
+      >
         {label}
       </Text>
     </Tactile>

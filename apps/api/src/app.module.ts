@@ -13,8 +13,16 @@ import { AdminModule } from './admin/admin.module.js';
 import { AuditModule } from './audit/audit.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { BillingModule } from './billing/billing.module.js';
-import { DefaultStoreVerifier, STORE_VERIFIER, type StoreVerifier } from './billing/store-verifier.js';
-import { ID_TOKEN_VERIFIER, OidcIdTokenVerifier, type IdTokenVerifier } from './auth/id-token-verifier.js';
+import {
+  DefaultStoreVerifier,
+  STORE_VERIFIER,
+  type StoreVerifier,
+} from './billing/store-verifier.js';
+import {
+  ID_TOKEN_VERIFIER,
+  OidcIdTokenVerifier,
+  type IdTokenVerifier,
+} from './auth/id-token-verifier.js';
 import { ChatModule } from './chat/chat.module.js';
 import { AppConfig } from './config/config.js';
 import { ConversationsModule } from './conversations/conversations.module.js';
@@ -24,12 +32,22 @@ import { HealthController } from './health/health.controller.js';
 import { MetricsController } from './observability/metrics.controller.js';
 import { MemoryModule } from './memory/memory.module.js';
 import { LimitsModule } from './limits/limits.module.js';
-import { ExpoPushProvider, PUSH_PROVIDER, RecordingPushProvider, type PushProvider } from './reminders/push.provider.js';
+import {
+  ExpoPushProvider,
+  PUSH_PROVIDER,
+  RecordingPushProvider,
+  type PushProvider,
+} from './reminders/push.provider.js';
 import { RemindersModule } from './reminders/reminders.module.js';
 import { ReportsModule } from './reports/reports.module.js';
 import { SearchModule } from './search/search.module.js';
 import { UsersModule } from './users/users.module.js';
-import { MockRealtimeProvider, OpenAiRealtimeProvider, REALTIME_PROVIDER, type RealtimeProvider } from './voice/realtime.provider.js';
+import {
+  MockRealtimeProvider,
+  OpenAiRealtimeProvider,
+  REALTIME_PROVIDER,
+  type RealtimeProvider,
+} from './voice/realtime.provider.js';
 import { VoiceModule } from './voice/voice.module.js';
 
 /** Swap external integrations for fakes in tests or local demos. */
@@ -67,18 +85,29 @@ export class AppModule {
         provide: MODERATION_PROVIDER,
         useValue:
           overrides.moderation ??
-          (config.env.AI_PROVIDER === 'openai' ? new OpenAiModeration(config) : new LocalModeration()),
+          (config.env.AI_PROVIDER === 'openai'
+            ? new OpenAiModeration(config)
+            : new LocalModeration()),
       },
       {
         provide: PUSH_PROVIDER,
         useValue:
           overrides.push ??
-          (config.env.PUSH_PROVIDER === 'expo' ? new ExpoPushProvider(config.env.EXPO_ACCESS_TOKEN) : new RecordingPushProvider()),
+          (config.env.PUSH_PROVIDER === 'expo'
+            ? new ExpoPushProvider(config.env.EXPO_ACCESS_TOKEN)
+            : new RecordingPushProvider()),
       },
-      { provide: STORE_VERIFIER, useValue: overrides.storeVerifier ?? new DefaultStoreVerifier(config) },
+      {
+        provide: STORE_VERIFIER,
+        useValue: overrides.storeVerifier ?? new DefaultStoreVerifier(config),
+      },
       {
         provide: REALTIME_PROVIDER,
-        useValue: overrides.realtime ?? (config.env.AI_PROVIDER === 'openai' ? new OpenAiRealtimeProvider(config) : new MockRealtimeProvider()),
+        useValue:
+          overrides.realtime ??
+          (config.env.AI_PROVIDER === 'openai'
+            ? new OpenAiRealtimeProvider(config)
+            : new MockRealtimeProvider()),
       },
     ];
     return {

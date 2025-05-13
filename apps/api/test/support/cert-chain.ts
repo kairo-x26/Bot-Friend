@@ -18,12 +18,61 @@ export function makeChain(): TestChain {
   ext('ca.ext', 'basicConstraints=critical,CA:TRUE\nkeyUsage=critical,keyCertSign,cRLSign\n');
   ext('leaf.ext', 'basicConstraints=critical,CA:FALSE\nkeyUsage=critical,digitalSignature\n');
 
-  for (const k of ['root', 'int', 'leaf']) run('ecparam', '-name', 'prime256v1', '-genkey', '-noout', '-out', `${k}.key`);
-  run('req', '-new', '-x509', '-key', 'root.key', '-subj', '/CN=Test Root', '-days', '30', '-out', 'root.pem', '-addext', 'basicConstraints=critical,CA:TRUE', '-addext', 'keyUsage=critical,keyCertSign');
+  for (const k of ['root', 'int', 'leaf'])
+    run('ecparam', '-name', 'prime256v1', '-genkey', '-noout', '-out', `${k}.key`);
+  run(
+    'req',
+    '-new',
+    '-x509',
+    '-key',
+    'root.key',
+    '-subj',
+    '/CN=Test Root',
+    '-days',
+    '30',
+    '-out',
+    'root.pem',
+    '-addext',
+    'basicConstraints=critical,CA:TRUE',
+    '-addext',
+    'keyUsage=critical,keyCertSign',
+  );
   run('req', '-new', '-key', 'int.key', '-subj', '/CN=Test Intermediate', '-out', 'int.csr');
-  run('x509', '-req', '-in', 'int.csr', '-CA', 'root.pem', '-CAkey', 'root.key', '-CAcreateserial', '-days', '30', '-extfile', 'ca.ext', '-out', 'int.pem');
+  run(
+    'x509',
+    '-req',
+    '-in',
+    'int.csr',
+    '-CA',
+    'root.pem',
+    '-CAkey',
+    'root.key',
+    '-CAcreateserial',
+    '-days',
+    '30',
+    '-extfile',
+    'ca.ext',
+    '-out',
+    'int.pem',
+  );
   run('req', '-new', '-key', 'leaf.key', '-subj', '/CN=Test Leaf', '-out', 'leaf.csr');
-  run('x509', '-req', '-in', 'leaf.csr', '-CA', 'int.pem', '-CAkey', 'int.key', '-CAcreateserial', '-days', '30', '-extfile', 'leaf.ext', '-out', 'leaf.pem');
+  run(
+    'x509',
+    '-req',
+    '-in',
+    'leaf.csr',
+    '-CA',
+    'int.pem',
+    '-CAkey',
+    'int.key',
+    '-CAcreateserial',
+    '-days',
+    '30',
+    '-extfile',
+    'leaf.ext',
+    '-out',
+    'leaf.pem',
+  );
   run('pkcs8', '-topk8', '-nocrypt', '-in', 'leaf.key', '-out', 'leaf.pk8');
 
   const der = (file: string) => new X509Certificate(readFileSync(join(dir, file))).raw;

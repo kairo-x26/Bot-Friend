@@ -6,7 +6,11 @@ export class ApiClient {
   token = '';
   constructor(readonly baseUrl: string) {}
 
-  async request<T = any>(method: string, path: string, body?: unknown): Promise<{ status: number; json: T }> {
+  async request<T = any>(
+    method: string,
+    path: string,
+    body?: unknown,
+  ): Promise<{ status: number; json: T }> {
     const res = await fetch(`${this.baseUrl}${path}`, {
       method,
       headers: {
@@ -31,13 +35,20 @@ export class ApiClient {
       email: `eval-${label}-${randomUUID().slice(0, 8)}@evals.local`,
       ageConfirmed: true,
     });
-    if (res.status !== 200) throw new Error(`Login failed (${res.status}): ${JSON.stringify(res.json)}. Is AUTH_DEV_LOGIN=true?`);
+    if (res.status !== 200)
+      throw new Error(
+        `Login failed (${res.status}): ${JSON.stringify(res.json)}. Is AUTH_DEV_LOGIN=true?`,
+      );
     this.token = res.json.accessToken;
     return res.json.user.id as string;
   }
 
   /** Sends one message and reads the SSE stream to its terminal event. */
-  async send(conversationId: string, content: string, opts: { idempotencyKey?: string; abortAfterMs?: number } = {}): Promise<TurnResult & { events: StreamEvent[] }> {
+  async send(
+    conversationId: string,
+    content: string,
+    opts: { idempotencyKey?: string; abortAfterMs?: number } = {},
+  ): Promise<TurnResult & { events: StreamEvent[] }> {
     const started = Date.now();
     const controller = new AbortController();
     if (opts.abortAfterMs) setTimeout(() => controller.abort(), opts.abortAfterMs);
@@ -50,16 +61,29 @@ export class ApiClient {
         body: JSON.stringify({ content, idempotencyKey: opts.idempotencyKey ?? randomUUID() }),
       });
     } catch {
-      return { status: 0, outcome: 'rejected', reply: '', latencyMs: Date.now() - started, events: [] };
+      return {
+        status: 0,
+        outcome: 'rejected',
+        reply: '',
+        latencyMs: Date.now() - started,
+        events: [],
+      };
     }
     if (!res.ok || !res.body) {
-      return { status: res.status, outcome: 'rejected', reply: '', latencyMs: Date.now() - started, events: [] };
+      return {
+        status: res.status,
+        outcome: 'rejected',
+        reply: '',
+        latencyMs: Date.now() - started,
+        events: [],
+      };
     }
     const parser = new SseParser();
     const decoder = new TextDecoder();
     const events: StreamEvent[] = [];
     try {
-      for await (const chunk of res.body) events.push(...parser.push(decoder.decode(chunk as Uint8Array, { stream: true })));
+      for await (const chunk of res.body)
+        events.push(...parser.push(decoder.decode(chunk as Uint8Array, { stream: true })));
     } catch {
       // aborted mid-stream on purpose
     }

@@ -33,14 +33,22 @@ afterAll(() => t.close());
 
 describe('admin access control', () => {
   it('rejects regular users from every admin route', async () => {
-    for (const url of ['/v1/admin/reports', '/v1/admin/metrics', '/v1/admin/audit', `/v1/admin/users/${member.id}`]) {
+    for (const url of [
+      '/v1/admin/reports',
+      '/v1/admin/metrics',
+      '/v1/admin/audit',
+      `/v1/admin/users/${member.id}`,
+    ]) {
       expect((await call(t, 'GET', url, { token: member.token })).status, url).toBe(403);
     }
   });
 
   it('lets moderators review but not suspend', async () => {
     expect((await call(t, 'GET', '/v1/admin/reports', { token: moderator })).status).toBe(200);
-    const res = await call(t, 'POST', `/v1/admin/users/${member.id}/suspend`, { token: moderator, body: { reason: 'spam' } });
+    const res = await call(t, 'POST', `/v1/admin/users/${member.id}/suspend`, {
+      token: moderator,
+      body: { reason: 'spam' },
+    });
     expect(res.status).toBe(403);
   });
 });
@@ -52,7 +60,12 @@ describe('moderation queue', () => {
     const r3 = await fileReport(member.token, 'offensive');
     const p1 = await call(t, 'GET', '/v1/admin/reports?status=open&limit=2', { token: moderator });
     expect(p1.json.items.map((r: any) => r.id)).toEqual([r2.id, r3.id]);
-    const p2 = await call(t, 'GET', `/v1/admin/reports?status=open&limit=2&cursor=${p1.json.nextCursor}`, { token: moderator });
+    const p2 = await call(
+      t,
+      'GET',
+      `/v1/admin/reports?status=open&limit=2&cursor=${p1.json.nextCursor}`,
+      { token: moderator },
+    );
     expect(p2.json.items.map((r: any) => r.id)).toEqual([r1.id]);
   });
 
@@ -65,7 +78,10 @@ describe('moderation queue', () => {
       token: moderator,
       body: { status: 'actioned', resolution: 'Added to red-team set' },
     });
-    expect(resolved.json).toMatchObject({ status: 'actioned', resolution: 'Added to red-team set' });
+    expect(resolved.json).toMatchObject({
+      status: 'actioned',
+      resolution: 'Added to red-team set',
+    });
     expect(resolved.json.resolvedAt).toBeTruthy();
 
     const audit = await t.db.select().from(auditEvents).where(eq(auditEvents.targetId, report.id));
@@ -73,7 +89,13 @@ describe('moderation queue', () => {
   });
 
   it('404s unknown reports', async () => {
-    expect((await call(t, 'GET', '/v1/admin/reports/00000000-0000-4000-8000-000000000000', { token: moderator })).status).toBe(404);
+    expect(
+      (
+        await call(t, 'GET', '/v1/admin/reports/00000000-0000-4000-8000-000000000000', {
+          token: moderator,
+        })
+      ).status,
+    ).toBe(404);
   });
 });
 
@@ -87,14 +109,27 @@ describe('user management', () => {
     expect(suspended.json.status).toBe('suspended');
     expect((await call(t, 'GET', '/v1/me', { token: victim.accessToken })).status).toBe(401);
 
-    await call(t, 'POST', `/v1/admin/users/${victim.user.id}/reinstate`, { token: admin, body: { reason: 'appeal ok' } });
-    const again = await devLogin(t, (await t.db.select().from(users).where(eq(users.id, victim.user.id)))[0]!.providerSubject);
+    await call(t, 'POST', `/v1/admin/users/${victim.user.id}/reinstate`, {
+      token: admin,
+      body: { reason: 'appeal ok' },
+    });
+    const again = await devLogin(
+      t,
+      (await t.db.select().from(users).where(eq(users.id, victim.user.id)))[0]!.providerSubject,
+    );
     expect((await call(t, 'GET', '/v1/me', { token: again.accessToken })).status).toBe(200);
   });
 
   it('prevents admins changing their own status or role', async () => {
     const me = await call(t, 'GET', '/v1/me', { token: admin });
-    expect((await call(t, 'PATCH', `/v1/admin/users/${me.json.user.id}/role`, { token: admin, body: { role: 'user' } })).status).toBe(403);
+    expect(
+      (
+        await call(t, 'PATCH', `/v1/admin/users/${me.json.user.id}/role`, {
+          token: admin,
+          body: { role: 'user' },
+        })
+      ).status,
+    ).toBe(403);
   });
 
   it('shows a content-free user summary', async () => {
@@ -116,7 +151,9 @@ describe('metrics and audit log', () => {
   it('pages the audit log newest first', async () => {
     const p1 = await call(t, 'GET', '/v1/admin/audit?limit=2', { token: moderator });
     expect(p1.json.items).toHaveLength(2);
-    const p2 = await call(t, 'GET', `/v1/admin/audit?limit=2&cursor=${p1.json.nextCursor}`, { token: moderator });
+    const p2 = await call(t, 'GET', `/v1/admin/audit?limit=2&cursor=${p1.json.nextCursor}`, {
+      token: moderator,
+    });
     expect(p2.json.items[0].occurredAt <= p1.json.items[1].occurredAt).toBe(true);
   });
 });

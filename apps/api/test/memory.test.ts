@@ -40,7 +40,10 @@ describe('memories', () => {
     const token = await user();
     const convo = await newConversation(t, token);
     await streamMessage(t, token, convo.id, 'my name is Priya and I have a dog named Biscuit');
-    expect((await call(t, 'GET', '/v1/memories', { token })).json).toEqual({ enabled: false, items: [] });
+    expect((await call(t, 'GET', '/v1/memories', { token })).json).toEqual({
+      enabled: false,
+      items: [],
+    });
 
     await call(t, 'PATCH', '/v1/me/preferences', { token, body: { memoryEnabled: true } });
     await streamMessage(t, token, convo.id, 'my name is Priya and I have a dog named Biscuit');
@@ -60,7 +63,10 @@ describe('memories', () => {
   it('uses approved and user-written memories in prompts, and drops them once deleted', async () => {
     const token = await user();
     await call(t, 'PATCH', '/v1/me/preferences', { token, body: { memoryEnabled: true } });
-    const created = await call(t, 'POST', '/v1/memories', { token, body: { content: 'Loves terrible puns' } });
+    const created = await call(t, 'POST', '/v1/memories', {
+      token,
+      body: { content: 'Loves terrible puns' },
+    });
     expect(created.json.status).toBe('approved');
 
     const convo = await newConversation(t, token);
@@ -77,10 +83,19 @@ describe('memories', () => {
     await call(t, 'PATCH', '/v1/me/preferences', { token, body: { memoryEnabled: true } });
     const convo = await newConversation(t, token);
     await streamMessage(t, token, convo.id, 'my favorite snack is spicy pickles');
-    const list = await waitFor(() => call(t, 'GET', '/v1/memories', { token }), (r) => r.json.items.length > 0);
+    const list = await waitFor(
+      () => call(t, 'GET', '/v1/memories', { token }),
+      (r) => r.json.items.length > 0,
+    );
     const id = list.json.items[0].id;
-    const edited = await call(t, 'PATCH', `/v1/memories/${id}`, { token, body: { content: 'Favorite snack: pickles (spicy!)' } });
-    expect(edited.json).toMatchObject({ status: 'approved', content: 'Favorite snack: pickles (spicy!)' });
+    const edited = await call(t, 'PATCH', `/v1/memories/${id}`, {
+      token,
+      body: { content: 'Favorite snack: pickles (spicy!)' },
+    });
+    expect(edited.json).toMatchObject({
+      status: 'approved',
+      content: 'Favorite snack: pickles (spicy!)',
+    });
     await streamMessage(t, token, convo.id, 'hello');
     expect(recorder.last!.instructions).toContain('Favorite snack: pickles (spicy!)');
   });
@@ -107,8 +122,18 @@ describe('memories', () => {
   it('keeps memories private to their owner', async () => {
     const a = await user();
     const b = await user();
-    const m = await call(t, 'POST', '/v1/memories', { token: a, body: { content: 'Secret hobby: competitive napping' } });
-    expect((await call(t, 'PATCH', `/v1/memories/${m.json.id}`, { token: b, body: { status: 'approved' } })).status).toBe(404);
+    const m = await call(t, 'POST', '/v1/memories', {
+      token: a,
+      body: { content: 'Secret hobby: competitive napping' },
+    });
+    expect(
+      (
+        await call(t, 'PATCH', `/v1/memories/${m.json.id}`, {
+          token: b,
+          body: { status: 'approved' },
+        })
+      ).status,
+    ).toBe(404);
     expect((await call(t, 'DELETE', `/v1/memories/${m.json.id}`, { token: b })).status).toBe(404);
     expect((await call(t, 'GET', '/v1/memories', { token: b })).json.items).toEqual([]);
   });
@@ -116,7 +141,9 @@ describe('memories', () => {
   it('is unavailable when the feature flag is off', async () => {
     const t2 = await createTestApp({ FEATURE_MEMORY: 'false' });
     const s = await devLogin(t2);
-    expect((await call(t2, 'GET', '/v1/memories', { token: s.accessToken })).json.error.code).toBe('feature_disabled');
+    expect((await call(t2, 'GET', '/v1/memories', { token: s.accessToken })).json.error.code).toBe(
+      'feature_disabled',
+    );
     await t2.close();
   });
 });

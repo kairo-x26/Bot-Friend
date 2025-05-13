@@ -1,4 +1,11 @@
-import { GAMES, GAME_OPENERS, type ComedyStyle, type ConversationMode, type GameId, type GameState } from '@bot-friend/shared';
+import {
+  GAMES,
+  GAME_OPENERS,
+  type ComedyStyle,
+  type ConversationMode,
+  type GameId,
+  type GameState,
+} from '@bot-friend/shared';
 import type { ConversationRow } from '../db/schema.js';
 
 export function isGame(mode: ConversationMode): mode is GameId {
@@ -7,7 +14,12 @@ export function isGame(mode: ConversationMode): mode is GameId {
 
 export function initialGameState(mode: ConversationMode): GameState | null {
   if (!isGame(mode)) return null;
-  return { round: 0, maxRounds: GAMES[mode].maxRounds, active: true, ...(mode === 'joke_battle' ? { ratings: [] } : {}) };
+  return {
+    round: 0,
+    maxRounds: GAMES[mode].maxRounds,
+    active: true,
+    ...(mode === 'joke_battle' ? { ratings: [] } : {}),
+  };
 }
 
 export function opener(mode: ConversationMode, style: ComedyStyle): string | null {
@@ -17,7 +29,12 @@ export function opener(mode: ConversationMode, style: ComedyStyle): string | nul
 export function readGameState(row: Pick<ConversationRow, 'gameState'>): GameState | null {
   const s = row.gameState as Partial<GameState> | null;
   if (!s || typeof s.round !== 'number') return null;
-  return { round: s.round, maxRounds: s.maxRounds ?? null, active: Boolean(s.active), ratings: s.ratings };
+  return {
+    round: s.round,
+    maxRounds: s.maxRounds ?? null,
+    active: Boolean(s.active),
+    ratings: s.ratings,
+  };
 }
 
 /** The mode the prompt should use: a finished or abandoned game is just a chat. */

@@ -27,7 +27,13 @@ export class FeedbackController {
     const updated = await this.db
       .update(messages)
       .set({ reaction, updatedAt: new Date() })
-      .where(and(eq(messages.id, assertUuid(id, 'Message')), eq(messages.userId, user.id), eq(messages.role, 'assistant')))
+      .where(
+        and(
+          eq(messages.id, assertUuid(id, 'Message')),
+          eq(messages.userId, user.id),
+          eq(messages.role, 'assistant'),
+        ),
+      )
       .returning({ id: messages.id, promptVersion: messages.promptVersion });
     if (updated.length === 0) throw ApiError.notFound('Message');
     if (reaction) {

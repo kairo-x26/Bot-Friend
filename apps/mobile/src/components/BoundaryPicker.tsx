@@ -15,10 +15,19 @@ export const BOUNDARY_LABELS: Record<HumorBoundary, string> = {
 };
 
 /** Multi-select of topics Bot-Friend should never joke about. */
-export function BoundaryPicker({ value, onChange }: { value: HumorBoundary[]; onChange: (next: HumorBoundary[]) => void }) {
+export function BoundaryPicker({
+  value,
+  onChange,
+}: {
+  value: HumorBoundary[];
+  onChange: (next: HumorBoundary[]) => void;
+}) {
   const t = useTheme();
   return (
-    <View accessibilityLabel="Off-limits topics" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: t.space[2] }}>
+    <View
+      accessibilityLabel="Off-limits topics"
+      style={{ flexDirection: 'row', flexWrap: 'wrap', gap: t.space[2] }}
+    >
       {humorBoundaryTopics.map((b) => {
         const on = value.includes(b);
         return (

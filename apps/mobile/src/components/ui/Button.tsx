@@ -17,7 +17,17 @@ export interface ButtonProps {
   testID?: string;
 }
 
-export function Button({ label, onPress, variant = 'primary', icon, loading, disabled, size = 'md', accessibilityHint, testID }: ButtonProps) {
+export function Button({
+  label,
+  onPress,
+  variant = 'primary',
+  icon,
+  loading,
+  disabled,
+  size = 'md',
+  accessibilityHint,
+  testID,
+}: ButtonProps) {
   const t = useTheme();
   const palette = {
     primary: { bg: t.colors.primary, fg: t.colors.textOnPrimary, border: t.colors.primary },
@@ -54,7 +64,11 @@ export function Button({ label, onPress, variant = 'primary', icon, loading, dis
         ) : (
           icon && <Icon name={icon} size={20} color={palette.fg} />
         )}
-        <Text variant={size === 'lg' ? 'subheading' : 'callout'} weight="semibold" style={{ color: palette.fg }}>
+        <Text
+          variant={size === 'lg' ? 'subheading' : 'callout'}
+          weight="semibold"
+          style={{ color: palette.fg }}
+        >
           {label}
         </Text>
       </View>
@@ -80,8 +94,14 @@ export function IconButton({
   testID?: string;
 }) {
   const t = useTheme();
-  const bg = tone === 'primary' ? t.colors.primary : tone === 'soft' ? t.colors.primarySoft : 'transparent';
-  const fg = tone === 'primary' ? t.colors.textOnPrimary : tone === 'soft' ? t.colors.primaryText : t.colors.text;
+  const bg =
+    tone === 'primary' ? t.colors.primary : tone === 'soft' ? t.colors.primarySoft : 'transparent';
+  const fg =
+    tone === 'primary'
+      ? t.colors.textOnPrimary
+      : tone === 'soft'
+        ? t.colors.primaryText
+        : t.colors.text;
   return (
     <Tactile
       testID={testID}

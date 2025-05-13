@@ -13,7 +13,15 @@ export interface TextProps extends RNTextProps {
 
 const DISPLAY_VARIANTS: TypeVariant[] = ['hero', 'title', 'heading'];
 
-export function Text({ variant = 'body', weight, display, tone = 'default', align, style, ...rest }: TextProps) {
+export function Text({
+  variant = 'body',
+  weight,
+  display,
+  tone = 'default',
+  align,
+  style,
+  ...rest
+}: TextProps) {
   const t = useTheme();
   const scale = t.type[variant];
   const useDisplay = display ?? DISPLAY_VARIANTS.includes(variant);
@@ -23,9 +31,12 @@ export function Text({ variant = 'body', weight, display, tone = 'default', alig
       : weight === 'medium' || weight === 'semibold'
         ? t.font.displayMedium
         : t.font.display
-    : { regular: t.font.body, medium: t.font.bodyMedium, semibold: t.font.bodySemibold, bold: t.font.bodyBold }[
-        weight ?? 'regular'
-      ];
+    : {
+        regular: t.font.body,
+        medium: t.font.bodyMedium,
+        semibold: t.font.bodySemibold,
+        bold: t.font.bodyBold,
+      }[weight ?? 'regular'];
   const color = {
     default: t.colors.text,
     muted: t.colors.textMuted,

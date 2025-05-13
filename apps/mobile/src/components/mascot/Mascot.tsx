@@ -40,7 +40,13 @@ export interface MascotProps {
  * Bot-Friend: a soft cosmic blob with an antenna. Breathes, blinks and reacts to
  * the conversation. All looping motion stops when reduced motion is on.
  */
-export function Mascot({ mood = 'idle', size = 120, color = 'violet', interactive = false, testID }: MascotProps) {
+export function Mascot({
+  mood = 'idle',
+  size = 120,
+  color = 'violet',
+  interactive = false,
+  testID,
+}: MascotProps) {
   const t = useTheme();
   const palette = mascotPalettes[color];
   const [tapMood, setTapMood] = useState<MascotMood | null>(null);
@@ -60,9 +66,16 @@ export function Mascot({ mood = 'idle', size = 120, color = 'violet', interactiv
       return;
     }
     const speed = shown === 'thinking' ? 700 : shown === 'sleepy' ? 2200 : 1600;
-    breath.value = withRepeat(withTiming(1, { duration: speed, easing: Easing.inOut(Easing.sin) }), -1, true);
+    breath.value = withRepeat(
+      withTiming(1, { duration: speed, easing: Easing.inOut(Easing.sin) }),
+      -1,
+      true,
+    );
     antenna.value = withRepeat(
-      withSequence(withTiming(1, { duration: 900, easing: Easing.inOut(Easing.quad) }), withTiming(-1, { duration: 900, easing: Easing.inOut(Easing.quad) })),
+      withSequence(
+        withTiming(1, { duration: 900, easing: Easing.inOut(Easing.quad) }),
+        withTiming(-1, { duration: 900, easing: Easing.inOut(Easing.quad) }),
+      ),
       -1,
       true,
     );
@@ -73,10 +86,16 @@ export function Mascot({ mood = 'idle', size = 120, color = 'violet', interactiv
   useEffect(() => {
     if (t.reducedMotion || shown === 'sleepy' || shown === 'laughing') return;
     const schedule = () => {
-      blinkTimer.current = setTimeout(() => {
-        blink.value = withSequence(withTiming(0.1, { duration: 70 }), withTiming(1, { duration: 110 }));
-        schedule();
-      }, 2200 + Math.random() * 2800);
+      blinkTimer.current = setTimeout(
+        () => {
+          blink.value = withSequence(
+            withTiming(0.1, { duration: 70 }),
+            withTiming(1, { duration: 110 }),
+          );
+          schedule();
+        },
+        2200 + Math.random() * 2800,
+      );
     };
     schedule();
     return () => {
@@ -87,7 +106,10 @@ export function Mascot({ mood = 'idle', size = 120, color = 'violet', interactiv
   // A little hop whenever the mood changes, so reactions read at a glance.
   useEffect(() => {
     if (t.reducedMotion) return;
-    bounce.value = withSequence(withTiming(-0.08, { duration: 120 }), withSpring(0, t.motion.bouncy));
+    bounce.value = withSequence(
+      withTiming(-0.08, { duration: 120 }),
+      withSpring(0, t.motion.bouncy),
+    );
   }, [shown, t.reducedMotion, bounce, t.motion.bouncy]);
 
   const bodyStyle = useAnimatedStyle(() => {
@@ -108,13 +130,18 @@ export function Mascot({ mood = 'idle', size = 120, color = 'violet', interactiv
       { scaleY: blink.value },
     ],
   }));
-  const antennaStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${antenna.value * 8}deg` }] }));
+  const antennaStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${antenna.value * 8}deg` }],
+  }));
 
   const onPress = () => {
     if (!interactive) return;
     setTapMood('laughing');
     if (!t.reducedMotion) {
-      bounce.value = withSequence(withTiming(-0.14, { duration: 140 }), withSpring(0, t.motion.bouncy));
+      bounce.value = withSequence(
+        withTiming(-0.14, { duration: 140 }),
+        withSpring(0, t.motion.bouncy),
+      );
     }
     setTimeout(() => setTapMood(null), 1400);
   };
@@ -124,12 +151,25 @@ export function Mascot({ mood = 'idle', size = 120, color = 'violet', interactiv
       {/* antenna pivots at its base */}
       <Animated.View
         style={[
-          { position: 'absolute', left: size * 0.47, top: -size * 0.02, width: size * 0.2, height: size * 0.2, transformOrigin: 'bottom left' },
+          {
+            position: 'absolute',
+            left: size * 0.47,
+            top: -size * 0.02,
+            width: size * 0.2,
+            height: size * 0.2,
+            transformOrigin: 'bottom left',
+          },
           antennaStyle,
         ]}
       >
         <Svg width="100%" height="100%" viewBox="0 0 20 20">
-          <Path d="M3 19 C4 12 7 8 11 5" stroke={palette.shade} strokeWidth={2.4} strokeLinecap="round" fill="none" />
+          <Path
+            d="M3 19 C4 12 7 8 11 5"
+            stroke={palette.shade}
+            strokeWidth={2.4}
+            strokeLinecap="round"
+            fill="none"
+          />
           <Path
             d="M12.5 1.2 l1.1 2.4 2.6.3-1.9 1.8.5 2.6-2.3-1.3-2.3 1.3.5-2.6-1.9-1.8 2.6-.3Z"
             fill={t.colors.accentWarm}
@@ -140,11 +180,40 @@ export function Mascot({ mood = 'idle', size = 120, color = 'violet', interactiv
       <Svg width={size} height={size} viewBox="0 0 100 100" style={{ position: 'absolute' }}>
         <Ellipse cx="37" cy="91" rx="8" ry="4" fill={palette.shade} />
         <Ellipse cx="63" cy="91" rx="8" ry="4" fill={palette.shade} />
-        <Path d="M52 16 C76 17 91 34 90 57 C89 78 73 91 50 90 C27 89 10 77 10 55 C10 33 28 15 52 16 Z" fill={palette.body} />
-        <Path d="M22 70 C30 84 46 89 62 86 C74 83 84 75 88 64 C86 80 72 91 50 90 C32 89 19 81 14 68 Z" fill={palette.shade} opacity={0.55} />
-        <Ellipse cx="33" cy="32" rx="9" ry="5" fill="#FFFFFF" opacity={0.28} transform="rotate(-28 33 32)" />
-        <Ellipse cx="27" cy="63" rx="6.5" ry="4" fill={palette.cheek} opacity={shown === 'caring' ? 0.9 : 0.6} />
-        <Ellipse cx="73" cy="63" rx="6.5" ry="4" fill={palette.cheek} opacity={shown === 'caring' ? 0.9 : 0.6} />
+        <Path
+          d="M52 16 C76 17 91 34 90 57 C89 78 73 91 50 90 C27 89 10 77 10 55 C10 33 28 15 52 16 Z"
+          fill={palette.body}
+        />
+        <Path
+          d="M22 70 C30 84 46 89 62 86 C74 83 84 75 88 64 C86 80 72 91 50 90 C32 89 19 81 14 68 Z"
+          fill={palette.shade}
+          opacity={0.55}
+        />
+        <Ellipse
+          cx="33"
+          cy="32"
+          rx="9"
+          ry="5"
+          fill="#FFFFFF"
+          opacity={0.28}
+          transform="rotate(-28 33 32)"
+        />
+        <Ellipse
+          cx="27"
+          cy="63"
+          rx="6.5"
+          ry="4"
+          fill={palette.cheek}
+          opacity={shown === 'caring' ? 0.9 : 0.6}
+        />
+        <Ellipse
+          cx="73"
+          cy="63"
+          rx="6.5"
+          ry="4"
+          fill={palette.cheek}
+          opacity={shown === 'caring' ? 0.9 : 0.6}
+        />
         <Mouth mood={shown} />
       </Svg>
 
@@ -165,7 +234,13 @@ export function Mascot({ mood = 'idle', size = 120, color = 'violet', interactiv
     );
   }
   return (
-    <Pressable testID={testID} onPress={onPress} accessibilityRole="button" accessibilityLabel={label} accessibilityHint="Tap to make Bot-Friend giggle">
+    <Pressable
+      testID={testID}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityHint="Tap to make Bot-Friend giggle"
+    >
       {face}
     </Pressable>
   );
@@ -216,16 +291,48 @@ function Mouth({ mood }: { mood: MascotMood }) {
         </G>
       );
     case 'happy':
-      return <Path d="M41 63 Q50 73 59 63" stroke={INK} strokeWidth={3.2} strokeLinecap="round" fill="none" />;
+      return (
+        <Path
+          d="M41 63 Q50 73 59 63"
+          stroke={INK}
+          strokeWidth={3.2}
+          strokeLinecap="round"
+          fill="none"
+        />
+      );
     case 'thinking':
       return <Circle cx="55" cy="67" r="2.6" fill={INK} />;
     case 'surprised':
       return <Ellipse cx="50" cy="68" rx="4.2" ry="5.2" fill={INK} />;
     case 'caring':
-      return <Path d="M44.5 65 Q50 69 55.5 65" stroke={INK} strokeWidth={3} strokeLinecap="round" fill="none" />;
+      return (
+        <Path
+          d="M44.5 65 Q50 69 55.5 65"
+          stroke={INK}
+          strokeWidth={3}
+          strokeLinecap="round"
+          fill="none"
+        />
+      );
     case 'sleepy':
-      return <Path d="M46 67 Q50 68.5 54 67" stroke={INK} strokeWidth={2.6} strokeLinecap="round" fill="none" />;
+      return (
+        <Path
+          d="M46 67 Q50 68.5 54 67"
+          stroke={INK}
+          strokeWidth={2.6}
+          strokeLinecap="round"
+          fill="none"
+        />
+      );
     default:
-      return <Path d="M44 64 Q50 70 56 64" stroke={INK} strokeWidth={3} strokeLinecap="round" fill="none" />;
+      return (
+        <Path
+          d="M44 64 Q50 70 56 64"
+          stroke={INK}
+          strokeWidth={3}
+          strokeLinecap="round"
+          fill="none"
+        />
+      );
   }
 }

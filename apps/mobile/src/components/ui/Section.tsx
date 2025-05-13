@@ -4,7 +4,15 @@ import { useTheme } from '@/theme/theme';
 import { Text } from './Text';
 
 /** Grouped content with a plain heading; no card chrome unless asked for. */
-export function Section({ title, children, framed = true }: { title?: string; children: ReactNode; framed?: boolean }) {
+export function Section({
+  title,
+  children,
+  framed = true,
+}: {
+  title?: string;
+  children: ReactNode;
+  framed?: boolean;
+}) {
   const t = useTheme();
   return (
     <View style={{ gap: t.space[2] }}>

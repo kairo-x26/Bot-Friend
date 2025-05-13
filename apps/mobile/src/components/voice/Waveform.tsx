@@ -1,6 +1,14 @@
 import { useEffect } from 'react';
 import { View } from 'react-native';
-import Animated, { Easing, cancelAnimation, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withTiming } from 'react-native-reanimated';
+import Animated, {
+  Easing,
+  cancelAnimation,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 import type { VoiceState } from '@/lib/voice/transport';
 import { useTheme } from '@/theme/theme';
 
@@ -20,12 +28,21 @@ function Bar({ index, state }: { index: number; state: VoiceState }) {
     const peak = BARS[index]!;
     level.value = withDelay(
       index * 70,
-      withRepeat(withTiming(peak, { duration: 260 + index * 30, easing: Easing.inOut(Easing.quad) }), -1, true),
+      withRepeat(
+        withTiming(peak, { duration: 260 + index * 30, easing: Easing.inOut(Easing.quad) }),
+        -1,
+        true,
+      ),
     );
   }, [active, state, index, level, t.reducedMotion]);
 
   const style = useAnimatedStyle(() => ({ height: `${Math.round(level.value * 100)}%` }));
-  const color = state === 'botSpeaking' ? t.colors.primary : state === 'userSpeaking' ? t.colors.accentWarm : t.colors.border;
+  const color =
+    state === 'botSpeaking'
+      ? t.colors.primary
+      : state === 'userSpeaking'
+        ? t.colors.accentWarm
+        : t.colors.border;
   return <Animated.View style={[{ width: 14, borderRadius: 7, backgroundColor: color }, style]} />;
 }
 
@@ -33,8 +50,20 @@ export function Waveform({ state }: { state: VoiceState }) {
   return (
     <View
       accessible
-      accessibilityLabel={state === 'botSpeaking' ? 'Bot-Friend is talking' : state === 'userSpeaking' ? 'Listening to you' : 'Waiting'}
-      style={{ height: 120, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}
+      accessibilityLabel={
+        state === 'botSpeaking'
+          ? 'Bot-Friend is talking'
+          : state === 'userSpeaking'
+            ? 'Listening to you'
+            : 'Waiting'
+      }
+      style={{
+        height: 120,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 10,
+      }}
     >
       {BARS.map((_, i) => (
         <Bar key={i} index={i} state={state} />

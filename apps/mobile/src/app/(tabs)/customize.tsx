@@ -26,14 +26,23 @@ export default function Customize() {
     <Screen title="Customize" subtitle="Tune how Bot-Friend talks to you.">
       {/* live preview */}
       <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: t.space[3] }}>
-        <Mascot size={96} mood={STYLE_MOOD[prefs.comedyStyle]} color={prefs.mascotColor} interactive />
+        <Mascot
+          size={96}
+          mood={STYLE_MOOD[prefs.comedyStyle]}
+          color={prefs.mascotColor}
+          interactive
+        />
         <View style={{ flex: 1, paddingBottom: t.space[2] }}>
           <BotBubblePreview text={PERSONALITIES[prefs.comedyStyle].sample} />
         </View>
       </View>
 
       <Section title="Vibe" framed={false}>
-        <View accessibilityRole="radiogroup" accessibilityLabel="Comedy style" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: t.space[2] }}>
+        <View
+          accessibilityRole="radiogroup"
+          accessibilityLabel="Comedy style"
+          style={{ flexDirection: 'row', flexWrap: 'wrap', gap: t.space[2] }}
+        >
           {comedyStyles.map((s) => {
             const active = prefs.comedyStyle === s;
             return (
@@ -56,7 +65,12 @@ export default function Customize() {
                   gap: 4,
                 }}
               >
-                <Text variant="subheading" display weight="semibold" tone={active ? 'onPrimary' : 'default'}>
+                <Text
+                  variant="subheading"
+                  display
+                  weight="semibold"
+                  tone={active ? 'onPrimary' : 'default'}
+                >
                   {PERSONALITIES[s].name}
                 </Text>
                 <Text variant="caption" tone={active ? 'onPrimary' : 'muted'}>
@@ -91,12 +105,19 @@ export default function Customize() {
         />
         <View style={{ paddingVertical: t.space[3], gap: t.space[3] }}>
           <Text weight="medium">Never joke about</Text>
-          <BoundaryPicker value={prefs.humorBoundaries} onChange={(humorBoundaries) => set({ humorBoundaries })} />
+          <BoundaryPicker
+            value={prefs.humorBoundaries}
+            onChange={(humorBoundaries) => set({ humorBoundaries })}
+          />
         </View>
       </Section>
 
       <Section title="Look" framed={false}>
-        <View accessibilityRole="radiogroup" accessibilityLabel="Mascot color" style={{ flexDirection: 'row', gap: t.space[4] }}>
+        <View
+          accessibilityRole="radiogroup"
+          accessibilityLabel="Mascot color"
+          style={{ flexDirection: 'row', gap: t.space[4] }}
+        >
           {COLORS.map((c) => {
             const active = prefs.mascotColor === c.value;
             return (
@@ -120,7 +141,11 @@ export default function Customize() {
                     borderColor: active ? t.colors.focusRing : 'transparent',
                   }}
                 />
-                <Text variant="caption" tone={active ? 'default' : 'muted'} weight={active ? 'semibold' : 'regular'}>
+                <Text
+                  variant="caption"
+                  tone={active ? 'default' : 'muted'}
+                  weight={active ? 'semibold' : 'regular'}
+                >
                   {c.label}
                 </Text>
               </Tactile>
@@ -128,7 +153,9 @@ export default function Customize() {
           })}
         </View>
       </Section>
-      {update.isError ? <Text tone="danger">Couldn’t save that change. Check your connection.</Text> : null}
+      {update.isError ? (
+        <Text tone="danger">Couldn’t save that change. Check your connection.</Text>
+      ) : null}
     </Screen>
   );
 }

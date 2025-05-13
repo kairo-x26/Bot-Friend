@@ -15,10 +15,26 @@ jest.mock('expo-haptics', () => ({
 
 // Reanimated's web implementation (forced by its jest resolver) checks reduced motion via matchMedia.
 if (typeof window !== 'undefined' && !window.matchMedia) {
-  window.matchMedia = () => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} });
+  window.matchMedia = () => ({
+    matches: false,
+    addListener() {},
+    removeListener() {},
+    addEventListener() {},
+    removeEventListener() {},
+  });
 }
 // ...and injects layout-animation keyframes into a <style> tag. A tiny DOM stub is enough.
 if (typeof globalThis.document === 'undefined') {
-  const el = () => ({ style: {}, sheet: { insertRule() {}, deleteRule() {}, cssRules: [] }, setAttribute() {}, appendChild() {} });
-  globalThis.document = { getElementById: () => null, createElement: el, head: { appendChild() {} }, body: { appendChild() {} } };
+  const el = () => ({
+    style: {},
+    sheet: { insertRule() {}, deleteRule() {}, cssRules: [] },
+    setAttribute() {},
+    appendChild() {},
+  });
+  globalThis.document = {
+    getElementById: () => null,
+    createElement: el,
+    head: { appendChild() {} },
+    body: { appendChild() {} },
+  };
 }

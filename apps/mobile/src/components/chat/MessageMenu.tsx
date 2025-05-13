@@ -55,10 +55,19 @@ export function MessageMenu({
   const id = item.id;
 
   return (
-    <Sheet visible onClose={close} title={mode === 'report' ? 'Report this reply' : mode === 'done' ? 'Report sent' : 'This reply'}>
+    <Sheet
+      visible
+      onClose={close}
+      title={
+        mode === 'report' ? 'Report this reply' : mode === 'done' ? 'Report sent' : 'This reply'
+      }
+    >
       {mode === 'menu' && (
         <View style={{ gap: t.space[3] }}>
-          <View accessibilityRole="toolbar" style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <View
+            accessibilityRole="toolbar"
+            style={{ flexDirection: 'row', justifyContent: 'space-between' }}
+          >
             {REACTIONS.map((r) => {
               const active = item.reaction === r.value;
               return (
@@ -88,8 +97,19 @@ export function MessageMenu({
             })}
           </View>
           <Divider />
-          <ListRow icon="check" label="Copy text" onPress={() => void Clipboard.setStringAsync(item.content).then(close)} />
-          <ListRow icon="flag" label="Report" detail="Tell us if this reply was harmful or wrong" tone="danger" onPress={() => setMode('report')} testID="menu-report" />
+          <ListRow
+            icon="check"
+            label="Copy text"
+            onPress={() => void Clipboard.setStringAsync(item.content).then(close)}
+          />
+          <ListRow
+            icon="flag"
+            label="Report"
+            detail="Tell us if this reply was harmful or wrong"
+            tone="danger"
+            onPress={() => setMode('report')}
+            testID="menu-report"
+          />
         </View>
       )}
 
@@ -103,8 +123,27 @@ export function MessageMenu({
                 onPress={() => setCategory(c)}
                 testID={`report-${c}`}
                 trailing={
-                  <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: category === c ? t.colors.primary : t.colors.border, alignItems: 'center', justifyContent: 'center' }}>
-                    {category === c ? <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: t.colors.primary }} /> : null}
+                  <View
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: 11,
+                      borderWidth: 2,
+                      borderColor: category === c ? t.colors.primary : t.colors.border,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {category === c ? (
+                      <View
+                        style={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: 5,
+                          backgroundColor: t.colors.primary,
+                        }}
+                      />
+                    ) : null}
                   </View>
                 }
               />
@@ -118,7 +157,15 @@ export function MessageMenu({
             maxLength={1000}
             multiline
             accessibilityLabel="Report details"
-            style={{ minHeight: 64, borderWidth: 1.5, borderColor: t.colors.border, borderRadius: t.radius.button, padding: t.space[3], color: t.colors.text, fontFamily: t.font.body }}
+            style={{
+              minHeight: 64,
+              borderWidth: 1.5,
+              borderColor: t.colors.border,
+              borderRadius: t.radius.button,
+              padding: t.space[3],
+              color: t.colors.text,
+              fontFamily: t.font.body,
+            }}
           />
           {error ? <Text tone="danger">{error}</Text> : null}
           <Button
@@ -130,10 +177,16 @@ export function MessageMenu({
               if (!category) return;
               setError(null);
               try {
-                await report.mutateAsync({ messageId: id, category, note: note.trim() || undefined });
+                await report.mutateAsync({
+                  messageId: id,
+                  category,
+                  note: note.trim() || undefined,
+                });
                 setMode('done');
               } catch (err) {
-                setError(err instanceof ApiClientError ? err.message : 'Report didn’t send. Try again.');
+                setError(
+                  err instanceof ApiClientError ? err.message : 'Report didn’t send. Try again.',
+                );
               }
             }}
           />
@@ -142,7 +195,10 @@ export function MessageMenu({
 
       {mode === 'done' && (
         <View style={{ gap: t.space[4] }}>
-          <Text tone="muted">Thanks. A person on our team will review it. This helps make Bot-Friend better for everyone.</Text>
+          <Text tone="muted">
+            Thanks. A person on our team will review it. This helps make Bot-Friend better for
+            everyone.
+          </Text>
           <Button label="Done" onPress={close} />
         </View>
       )}

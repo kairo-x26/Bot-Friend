@@ -16,12 +16,29 @@ describe('reactions', () => {
     const convo = await newConversation(t, u.accessToken);
     const res = await streamMessage(t, u.accessToken, convo.id, 'tell me a joke');
     const id = (res.terminal as any).message.id;
-    expect((await call(t, 'POST', `/v1/messages/${id}/reaction`, { token: u.accessToken, body: { reaction: 'laugh' } })).json).toEqual({ reaction: 'laugh' });
-    await call(t, 'POST', `/v1/messages/${id}/reaction`, { token: u.accessToken, body: { reaction: 'down' } });
-    let history = await call(t, 'GET', `/v1/conversations/${convo.id}/messages`, { token: u.accessToken });
+    expect(
+      (
+        await call(t, 'POST', `/v1/messages/${id}/reaction`, {
+          token: u.accessToken,
+          body: { reaction: 'laugh' },
+        })
+      ).json,
+    ).toEqual({ reaction: 'laugh' });
+    await call(t, 'POST', `/v1/messages/${id}/reaction`, {
+      token: u.accessToken,
+      body: { reaction: 'down' },
+    });
+    let history = await call(t, 'GET', `/v1/conversations/${convo.id}/messages`, {
+      token: u.accessToken,
+    });
     expect(history.json.items.at(-1).reaction).toBe('down');
-    await call(t, 'POST', `/v1/messages/${id}/reaction`, { token: u.accessToken, body: { reaction: null } });
-    history = await call(t, 'GET', `/v1/conversations/${convo.id}/messages`, { token: u.accessToken });
+    await call(t, 'POST', `/v1/messages/${id}/reaction`, {
+      token: u.accessToken,
+      body: { reaction: null },
+    });
+    history = await call(t, 'GET', `/v1/conversations/${convo.id}/messages`, {
+      token: u.accessToken,
+    });
     expect(history.json.items.at(-1).reaction).toBeNull();
   });
 
@@ -32,8 +49,22 @@ describe('reactions', () => {
     const res = await streamMessage(t, u.accessToken, convo.id, 'hi');
     const userMsgId = (res.events[0] as any).userMessage.id;
     const botMsgId = (res.terminal as any).message.id;
-    expect((await call(t, 'POST', `/v1/messages/${userMsgId}/reaction`, { token: u.accessToken, body: { reaction: 'love' } })).status).toBe(404);
-    expect((await call(t, 'POST', `/v1/messages/${botMsgId}/reaction`, { token: other.accessToken, body: { reaction: 'love' } })).status).toBe(404);
+    expect(
+      (
+        await call(t, 'POST', `/v1/messages/${userMsgId}/reaction`, {
+          token: u.accessToken,
+          body: { reaction: 'love' },
+        })
+      ).status,
+    ).toBe(404);
+    expect(
+      (
+        await call(t, 'POST', `/v1/messages/${botMsgId}/reaction`, {
+          token: other.accessToken,
+          body: { reaction: 'love' },
+        })
+      ).status,
+    ).toBe(404);
   });
 
   it('feeds the positive rating KPI on the admin dashboard', async () => {
@@ -41,7 +72,10 @@ describe('reactions', () => {
     const convo = await newConversation(t, u.accessToken);
     for (const reaction of ['laugh', 'love', 'up', 'down']) {
       const res = await streamMessage(t, u.accessToken, convo.id, `joke ${reaction}`);
-      await call(t, 'POST', `/v1/messages/${(res.terminal as any).message.id}/reaction`, { token: u.accessToken, body: { reaction } });
+      await call(t, 'POST', `/v1/messages/${(res.terminal as any).message.id}/reaction`, {
+        token: u.accessToken,
+        body: { reaction },
+      });
     }
     const admin = await devLogin(t, 'kpi-admin@example.com');
     await t.db.update(users).set({ role: 'admin' }).where(eq(users.id, admin.user.id));
@@ -54,6 +88,10 @@ describe('reactions', () => {
 
 describe('GET /v1/features', () => {
   it('reports feature flags publicly', async () => {
-    expect((await call(t, 'GET', '/v1/features')).json).toEqual({ memory: true, voice: true, billing: false });
+    expect((await call(t, 'GET', '/v1/features')).json).toEqual({
+      memory: true,
+      voice: true,
+      billing: false,
+    });
   });
 });

@@ -31,8 +31,12 @@ describe('GET /v1/search', () => {
     const u = await devLogin(t);
     const c = await newConversation(t, u.accessToken);
     await streamMessage(t, u.accessToken, c.id, 'I am 100% done with mondays');
-    expect((await call(t, 'GET', '/v1/search?q=100%25', { token: u.accessToken })).json.items).toHaveLength(1);
-    expect((await call(t, 'GET', '/v1/search?q=%25%25', { token: u.accessToken })).json.items).toHaveLength(0);
+    expect(
+      (await call(t, 'GET', '/v1/search?q=100%25', { token: u.accessToken })).json.items,
+    ).toHaveLength(1);
+    expect(
+      (await call(t, 'GET', '/v1/search?q=%25%25', { token: u.accessToken })).json.items,
+    ).toHaveLength(0);
     expect((await call(t, 'GET', '/v1/search?q=a', { token: u.accessToken })).status).toBe(400);
   });
 
@@ -51,15 +55,23 @@ describe('GET /v1/account/export', () => {
     const u = await devLogin(t);
     const c = await newConversation(t, u.accessToken);
     await streamMessage(t, u.accessToken, c.id, 'export me');
-    await call(t, 'POST', '/v1/memories', { token: u.accessToken, body: { content: 'Likes exports' } });
+    await call(t, 'POST', '/v1/memories', {
+      token: u.accessToken,
+      body: { content: 'Likes exports' },
+    });
 
     const res = await call(t, 'GET', '/v1/account/export', { token: u.accessToken });
     expect(res.status).toBe(200);
-    expect(res.headers['content-disposition']).toMatch(/attachment; filename="bot-friend-export-\d{4}-\d{2}-\d{2}\.json"/);
+    expect(res.headers['content-disposition']).toMatch(
+      /attachment; filename="bot-friend-export-\d{4}-\d{2}-\d{2}\.json"/,
+    );
     expect(res.json.formatVersion).toBe(1);
     expect(res.json.user.id).toBe(u.user.id);
     expect(res.json.conversations).toHaveLength(1);
-    expect(res.json.conversations[0].messages.map((m: any) => m.role)).toEqual(['user', 'assistant']);
+    expect(res.json.conversations[0].messages.map((m: any) => m.role)).toEqual([
+      'user',
+      'assistant',
+    ]);
     expect(res.json.memories[0].content).toBe('Likes exports');
     expect(JSON.stringify(res.json)).not.toMatch(/providerSubject|sessionVersion|idempotency/);
   });

@@ -128,7 +128,13 @@ export const messageSchema = z.object({
 });
 export type Message = z.infer<typeof messageSchema>;
 
-export const conversationModeSchema = z.enum(['chat', 'joke_battle', 'roast_me', 'would_you_rather', 'story_builder']);
+export const conversationModeSchema = z.enum([
+  'chat',
+  'joke_battle',
+  'roast_me',
+  'would_you_rather',
+  'story_builder',
+]);
 export type ConversationMode = z.infer<typeof conversationModeSchema>;
 
 export const conversationGameSchema = z

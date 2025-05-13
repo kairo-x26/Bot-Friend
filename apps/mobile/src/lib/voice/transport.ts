@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 
-export type VoiceState = 'connecting' | 'listening' | 'userSpeaking' | 'botSpeaking' | 'ended' | 'error';
+export type VoiceState =
+  'connecting' | 'listening' | 'userSpeaking' | 'botSpeaking' | 'ended' | 'error';
 
 export interface VoiceTransport {
   start(onState: (s: VoiceState) => void): Promise<void>;
@@ -34,7 +35,11 @@ export class WebRtcTransport implements VoiceTransport {
         const e = JSON.parse(String(msg.data)) as { type: string };
         if (e.type === 'input_audio_buffer.speech_started') onState('userSpeaking');
         else if (e.type === 'output_audio_buffer.started') onState('botSpeaking');
-        else if (e.type === 'output_audio_buffer.stopped' || e.type === 'input_audio_buffer.speech_stopped') onState('listening');
+        else if (
+          e.type === 'output_audio_buffer.stopped' ||
+          e.type === 'input_audio_buffer.speech_stopped'
+        )
+          onState('listening');
       } catch {
         // ignore non-JSON frames
       }

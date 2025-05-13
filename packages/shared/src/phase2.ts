@@ -29,7 +29,9 @@ export const updateMemorySchema = z
     content: z.string().trim().min(2).max(MAX_MEMORY_LENGTH).optional(),
     status: z.literal('approved').optional(),
   })
-  .refine((v) => v.content !== undefined || v.status !== undefined, { message: 'Nothing to update' });
+  .refine((v) => v.content !== undefined || v.status !== undefined, {
+    message: 'Nothing to update',
+  });
 export type UpdateMemory = z.infer<typeof updateMemorySchema>;
 
 export const memoryListSchema = z.object({ items: z.array(memorySchema), enabled: z.boolean() });

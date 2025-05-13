@@ -42,7 +42,12 @@ export function setUnauthorizedHandler(fn: () => void) {
   onUnauthorized = fn;
 }
 
-export async function request<T>(method: string, path: string, body?: unknown, token = tokenStore.get()): Promise<T> {
+export async function request<T>(
+  method: string,
+  path: string,
+  body?: unknown,
+  token = tokenStore.get(),
+): Promise<T> {
   let res: Response;
   try {
     res = await fetch(`${BASE}${path}`, {

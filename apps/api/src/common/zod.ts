@@ -6,8 +6,13 @@ import { ApiError } from './api-error.js';
 export function parse<T extends z.ZodTypeAny>(schema: T, input: unknown): z.infer<T> {
   const result = schema.safeParse(input ?? {});
   if (!result.success) {
-    const details = result.error.issues.map((i) => ({ path: i.path.join('.'), message: i.message }));
-    throw new ApiError(ErrorCode.ValidationFailed, details[0]?.message ?? 'Invalid request', { details });
+    const details = result.error.issues.map((i) => ({
+      path: i.path.join('.'),
+      message: i.message,
+    }));
+    throw new ApiError(ErrorCode.ValidationFailed, details[0]?.message ?? 'Invalid request', {
+      details,
+    });
   }
   return result.data;
 }

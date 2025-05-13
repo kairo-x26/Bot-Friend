@@ -7,7 +7,11 @@ const HANDLE = Symbol('DB_HANDLE');
 @Global()
 @Module({
   providers: [
-    { provide: HANDLE, inject: [AppConfig], useFactory: (config: AppConfig) => openDatabase(config) },
+    {
+      provide: HANDLE,
+      inject: [AppConfig],
+      useFactory: (config: AppConfig) => openDatabase(config),
+    },
     { provide: DB, inject: [HANDLE], useFactory: (handle: DatabaseHandle) => handle.db },
   ],
   exports: [DB],

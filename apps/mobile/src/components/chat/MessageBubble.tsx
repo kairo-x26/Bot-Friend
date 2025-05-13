@@ -19,7 +19,9 @@ interface Props {
 export const MessageBubble = memo(function MessageBubble({ item, onRetry, onLongPress }: Props) {
   const t = useTheme();
   const mine = item.role === 'user';
-  const entering = t.reducedMotion ? undefined : FadeInDown.duration(t.motion.base).springify().damping(18);
+  const entering = t.reducedMotion
+    ? undefined
+    : FadeInDown.duration(t.motion.base).springify().damping(18);
 
   if (!mine && item.status === 'blocked' && item.supportResources) {
     return (
@@ -57,7 +59,13 @@ export const MessageBubble = memo(function MessageBubble({ item, onRetry, onLong
         <Text
           selectable
           tone={muted ? 'muted' : 'default'}
-          style={{ color: mine ? t.colors.userBubbleText : muted ? t.colors.textMuted : t.colors.botBubbleText }}
+          style={{
+            color: mine
+              ? t.colors.userBubbleText
+              : muted
+                ? t.colors.textMuted
+                : t.colors.botBubbleText,
+          }}
         >
           {item.content}
           {streaming ? <Text style={{ color: t.colors.primaryText }}> ▍</Text> : null}
@@ -89,7 +97,12 @@ export const MessageBubble = memo(function MessageBubble({ item, onRetry, onLong
       {item.reaction ? (
         <Text
           accessibilityLabel={`You reacted ${item.reaction}`}
-          style={{ alignSelf: mine ? 'flex-end' : 'flex-start', marginTop: -10, marginLeft: mine ? 0 : t.space[3], fontSize: 16 }}
+          style={{
+            alignSelf: mine ? 'flex-end' : 'flex-start',
+            marginTop: -10,
+            marginLeft: mine ? 0 : t.space[3],
+            fontSize: 16,
+          }}
         >
           {REACTION_EMOJI[item.reaction]}
         </Text>
@@ -104,12 +117,20 @@ export const MessageBubble = memo(function MessageBubble({ item, onRetry, onLong
       {(failed || unsent) && (
         <View
           accessibilityLiveRegion="polite"
-          style={{ alignSelf: mine ? 'flex-end' : 'flex-start', flexDirection: 'row', alignItems: 'center', gap: t.space[2], maxWidth: '84%' }}
+          style={{
+            alignSelf: mine ? 'flex-end' : 'flex-start',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: t.space[2],
+            maxWidth: '84%',
+          }}
         >
           <Text variant="caption" tone="danger" style={{ flexShrink: 1 }}>
             {item.error ?? 'Not sent.'}
           </Text>
-          {item.retryable !== false && onRetry ? <Button label="Retry" variant="ghost" onPress={onRetry} testID={`retry-${item.key}`} /> : null}
+          {item.retryable !== false && onRetry ? (
+            <Button label="Retry" variant="ghost" onPress={onRetry} testID={`retry-${item.key}`} />
+          ) : null}
         </View>
       )}
     </Animated.View>

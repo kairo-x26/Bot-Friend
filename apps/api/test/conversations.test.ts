@@ -16,11 +16,15 @@ beforeAll(async () => {
 });
 afterAll(() => t.close());
 
-const create = (token: string, body: object = {}) => call(t, 'POST', '/v1/conversations', { token, body });
+const create = (token: string, body: object = {}) =>
+  call(t, 'POST', '/v1/conversations', { token, body });
 
 describe('conversations', () => {
   it('creates a conversation using the current comedy style', async () => {
-    await call(t, 'PATCH', '/v1/me/preferences', { token: alice.token, body: { comedyStyle: 'chill' } });
+    await call(t, 'PATCH', '/v1/me/preferences', {
+      token: alice.token,
+      body: { comedyStyle: 'chill' },
+    });
     const res = await create(alice.token);
     expect(res.status).toBe(201);
     expect(res.json).toMatchObject({ title: 'New chat', mode: 'chat', comedyStyle: 'chill' });
@@ -29,7 +33,10 @@ describe('conversations', () => {
   it('requires roast opt-in for Roast Me', async () => {
     const denied = await create(alice.token, { mode: 'roast_me' });
     expect(denied.status).toBe(403);
-    await call(t, 'PATCH', '/v1/me/preferences', { token: alice.token, body: { roastOptIn: true } });
+    await call(t, 'PATCH', '/v1/me/preferences', {
+      token: alice.token,
+      body: { roastOptIn: true },
+    });
     const ok = await create(alice.token, { mode: 'roast_me' });
     expect(ok.status).toBe(201);
     expect(ok.json.title).toBe('Roast Me');
@@ -40,15 +47,21 @@ describe('conversations', () => {
     for (let i = 0; i < 5; i++) await create(u.accessToken, { title: `c${i}` });
     const p1 = await call(t, 'GET', '/v1/conversations?limit=2', { token: u.accessToken });
     expect(p1.json.items.map((c: any) => c.title)).toEqual(['c4', 'c3']);
-    const p2 = await call(t, 'GET', `/v1/conversations?limit=2&cursor=${p1.json.nextCursor}`, { token: u.accessToken });
+    const p2 = await call(t, 'GET', `/v1/conversations?limit=2&cursor=${p1.json.nextCursor}`, {
+      token: u.accessToken,
+    });
     expect(p2.json.items.map((c: any) => c.title)).toEqual(['c2', 'c1']);
-    const p3 = await call(t, 'GET', `/v1/conversations?limit=2&cursor=${p2.json.nextCursor}`, { token: u.accessToken });
+    const p3 = await call(t, 'GET', `/v1/conversations?limit=2&cursor=${p2.json.nextCursor}`, {
+      token: u.accessToken,
+    });
     expect(p3.json.items.map((c: any) => c.title)).toEqual(['c0']);
     expect(p3.json.nextCursor).toBeNull();
   });
 
   it('rejects a tampered cursor', async () => {
-    const res = await call(t, 'GET', '/v1/conversations?cursor=not-a-cursor', { token: alice.token });
+    const res = await call(t, 'GET', '/v1/conversations?cursor=not-a-cursor', {
+      token: alice.token,
+    });
     expect(res.status).toBe(400);
   });
 
@@ -61,21 +74,31 @@ describe('conversations', () => {
       ['PATCH', `/v1/conversations/${id}`],
       ['DELETE', `/v1/conversations/${id}`],
     ] as const) {
-      const res = await call(t, method, url, { token: bob.token, body: method === 'PATCH' ? { title: 'x' } : undefined });
+      const res = await call(t, method, url, {
+        token: bob.token,
+        body: method === 'PATCH' ? { title: 'x' } : undefined,
+      });
       expect(res.status, `${method} ${url}`).toBe(404);
     }
     const list = await call(t, 'GET', '/v1/conversations', { token: bob.token });
     expect(list.json.items.find((c: any) => c.id === id)).toBeUndefined();
-    expect((await call(t, 'GET', `/v1/conversations/${id}`, { token: alice.token })).status).toBe(200);
+    expect((await call(t, 'GET', `/v1/conversations/${id}`, { token: alice.token })).status).toBe(
+      200,
+    );
   });
 
   it('returns 404 for malformed ids', async () => {
-    expect((await call(t, 'GET', '/v1/conversations/123', { token: alice.token })).status).toBe(404);
+    expect((await call(t, 'GET', '/v1/conversations/123', { token: alice.token })).status).toBe(
+      404,
+    );
   });
 
   it('renames and deletes, cascading messages', async () => {
     const c = await create(alice.token);
-    const renamed = await call(t, 'PATCH', `/v1/conversations/${c.json.id}`, { token: alice.token, body: { title: 'Snacks' } });
+    const renamed = await call(t, 'PATCH', `/v1/conversations/${c.json.id}`, {
+      token: alice.token,
+      body: { title: 'Snacks' },
+    });
     expect(renamed.json.title).toBe('Snacks');
     await t.db.insert(messages).values({
       conversationId: c.json.id,
@@ -84,9 +107,15 @@ describe('conversations', () => {
       content: 'hello',
       status: 'completed',
     });
-    expect((await call(t, 'DELETE', `/v1/conversations/${c.json.id}`, { token: alice.token })).status).toBe(204);
-    expect((await call(t, 'GET', `/v1/conversations/${c.json.id}`, { token: alice.token })).status).toBe(404);
-    expect((await call(t, 'DELETE', `/v1/conversations/${c.json.id}`, { token: alice.token })).status).toBe(404);
+    expect(
+      (await call(t, 'DELETE', `/v1/conversations/${c.json.id}`, { token: alice.token })).status,
+    ).toBe(204);
+    expect(
+      (await call(t, 'GET', `/v1/conversations/${c.json.id}`, { token: alice.token })).status,
+    ).toBe(404);
+    expect(
+      (await call(t, 'DELETE', `/v1/conversations/${c.json.id}`, { token: alice.token })).status,
+    ).toBe(404);
   });
 
   it('pages messages backwards in chronological chunks and hides system rows', async () => {
@@ -101,13 +130,27 @@ describe('conversations', () => {
         status: 'completed' as const,
         createdAt: new Date(base + i * 1000),
       })),
-      { conversationId: c.json.id, userId: alice.id, role: 'system', content: 'hidden', status: 'completed', createdAt: new Date(base + 10_000) },
+      {
+        conversationId: c.json.id,
+        userId: alice.id,
+        role: 'system',
+        content: 'hidden',
+        status: 'completed',
+        createdAt: new Date(base + 10_000),
+      },
     ]);
-    const p1 = await call(t, 'GET', `/v1/conversations/${c.json.id}/messages?limit=3`, { token: alice.token });
-    expect(p1.json.items.map((m: any) => m.content)).toEqual(['m2', 'm3', 'm4']);
-    const p2 = await call(t, 'GET', `/v1/conversations/${c.json.id}/messages?limit=3&cursor=${p1.json.nextCursor}`, {
+    const p1 = await call(t, 'GET', `/v1/conversations/${c.json.id}/messages?limit=3`, {
       token: alice.token,
     });
+    expect(p1.json.items.map((m: any) => m.content)).toEqual(['m2', 'm3', 'm4']);
+    const p2 = await call(
+      t,
+      'GET',
+      `/v1/conversations/${c.json.id}/messages?limit=3&cursor=${p1.json.nextCursor}`,
+      {
+        token: alice.token,
+      },
+    );
     expect(p2.json.items.map((m: any) => m.content)).toEqual(['m0', 'm1']);
     expect(p2.json.nextCursor).toBeNull();
   });

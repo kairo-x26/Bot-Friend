@@ -44,7 +44,12 @@ export default function TabsLayout() {
                   backgroundColor: focused ? t.colors.primarySoft : 'transparent',
                 }}
               >
-                <Icon name={tab.icon} size={22} color={String(color)} strokeWidth={focused ? 2.4 : 2} />
+                <Icon
+                  name={tab.icon}
+                  size={22}
+                  color={String(color)}
+                  strokeWidth={focused ? 2.4 : 2}
+                />
               </View>
             ),
           }}

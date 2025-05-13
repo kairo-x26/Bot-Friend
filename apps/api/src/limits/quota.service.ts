@@ -28,21 +28,35 @@ export class QuotaService {
 
   dailyLimit(entitlement: Entitlement): number {
     const { QUOTA_GUEST_DAILY, QUOTA_FREE_DAILY, QUOTA_PREMIUM_DAILY } = this.config.env;
-    return { guest: QUOTA_GUEST_DAILY, free: QUOTA_FREE_DAILY, premium: QUOTA_PREMIUM_DAILY }[entitlement];
+    return { guest: QUOTA_GUEST_DAILY, free: QUOTA_FREE_DAILY, premium: QUOTA_PREMIUM_DAILY }[
+      entitlement
+    ];
   }
 
   /** Per-user burst limit on message submissions (BF-017). */
   async checkMessageRate(userId: string): Promise<void> {
-    const res = await this.limiter.hit(`msg:${userId}`, this.config.env.RATE_LIMIT_MESSAGES_PER_MINUTE, 60_000);
+    const res = await this.limiter.hit(
+      `msg:${userId}`,
+      this.config.env.RATE_LIMIT_MESSAGES_PER_MINUTE,
+      60_000,
+    );
     if (!res.allowed) {
-      throw new ApiError(ErrorCode.RateLimited, 'Whoa, that’s a lot of messages. Take a breath and try again in a moment.', {
-        retryAfterSeconds: res.retryAfterSeconds,
-      });
+      throw new ApiError(
+        ErrorCode.RateLimited,
+        'Whoa, that’s a lot of messages. Take a breath and try again in a moment.',
+        {
+          retryAfterSeconds: res.retryAfterSeconds,
+        },
+      );
     }
   }
 
   async checkAuthRate(ip: string): Promise<void> {
-    const res = await this.limiter.hit(`auth:${ip}`, this.config.env.RATE_LIMIT_AUTH_PER_MINUTE, 60_000);
+    const res = await this.limiter.hit(
+      `auth:${ip}`,
+      this.config.env.RATE_LIMIT_AUTH_PER_MINUTE,
+      60_000,
+    );
     if (!res.allowed) {
       throw new ApiError(ErrorCode.RateLimited, 'Too many sign-in attempts. Try again shortly.', {
         retryAfterSeconds: res.retryAfterSeconds,
@@ -73,7 +87,11 @@ export class QuotaService {
           ? 'You’ve used today’s free trial messages. Sign in to keep chatting.'
           : 'You’ve reached today’s message limit. It resets at midnight UTC.',
         {
-          details: { entitlement: user.entitlement, limit, resetsAt: nextUtcMidnight().toISOString() },
+          details: {
+            entitlement: user.entitlement,
+            limit,
+            resetsAt: nextUtcMidnight().toISOString(),
+          },
           retryAfterSeconds: Math.ceil((nextUtcMidnight().getTime() - Date.now()) / 1000),
         },
       );
@@ -108,9 +126,13 @@ export class QuotaService {
       this.spendCache = { at: now, micros: Number(row?.total ?? 0) };
     }
     if (this.spendCache.micros >= budgetUsd * 1_000_000) {
-      throw new ApiError(ErrorCode.ProviderUnavailable, 'Bot-Friend is taking a short break. Try again later.', {
-        retryAfterSeconds: 600,
-      });
+      throw new ApiError(
+        ErrorCode.ProviderUnavailable,
+        'Bot-Friend is taking a short break. Try again later.',
+        {
+          retryAfterSeconds: 600,
+        },
+      );
     }
   }
 }

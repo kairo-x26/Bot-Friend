@@ -40,11 +40,15 @@ export async function createApp(options: AppModuleOptions): Promise<NestFastifyA
     },
   });
 
-  const app = await NestFactory.create<NestFastifyApplication>(AppModule.register(options), adapter, {
-    logger: NEST_LEVELS[config.env.LOG_LEVEL] ?? ['error', 'warn', 'log'],
-    bufferLogs: false,
-    abortOnError: false,
-  });
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule.register(options),
+    adapter,
+    {
+      logger: NEST_LEVELS[config.env.LOG_LEVEL] ?? ['error', 'warn', 'log'],
+      bufferLogs: false,
+      abortOnError: false,
+    },
+  );
 
   const fastify = app.getHttpAdapter().getInstance();
   fastify.addHook('onRequest', async (req, reply) => {
@@ -53,7 +57,11 @@ export async function createApp(options: AppModuleOptions): Promise<NestFastifyA
   fastify.addHook('onResponse', async (req, reply) => {
     // routeOptions.url is the pattern (/v1/conversations/:id), never the raw path with ids.
     const route = req.routeOptions?.url ?? 'unmatched';
-    httpRequests.inc({ method: req.method, route, status: `${Math.floor(reply.statusCode / 100)}xx` });
+    httpRequests.inc({
+      method: req.method,
+      route,
+      status: `${Math.floor(reply.statusCode / 100)}xx`,
+    });
     httpDuration.observe({ method: req.method, route }, reply.elapsedTime / 1000);
   });
 
@@ -64,7 +72,9 @@ export async function createApp(options: AppModuleOptions): Promise<NestFastifyA
     exposedHeaders: ['x-request-id', 'retry-after'],
     maxAge: 600,
   });
-  app.useGlobalFilters(new ErrorFilter(await createErrorReporter(config.env.SENTRY_DSN, config.env.NODE_ENV)));
+  app.useGlobalFilters(
+    new ErrorFilter(await createErrorReporter(config.env.SENTRY_DSN, config.env.NODE_ENV)),
+  );
   app.enableShutdownHooks();
   await app.init();
   return app;

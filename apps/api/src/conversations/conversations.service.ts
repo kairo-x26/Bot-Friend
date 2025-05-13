@@ -61,13 +61,17 @@ export class ConversationsService {
     if (!isGame(convo.mode)) throw ApiError.forbidden('This conversation is not a game');
     const prefs = await this.users.preferences(userId);
     const row = await this.db.transaction(async (tx) => {
-      const state = action === 'restart' ? initialGameState(convo.mode) : { ...(convo.gameState ?? {}), active: false };
+      const state =
+        action === 'restart'
+          ? initialGameState(convo.mode)
+          : { ...(convo.gameState ?? {}), active: false };
       const [row] = await tx
         .update(conversations)
         .set({ gameState: state, updatedAt: new Date() })
         .where(eq(conversations.id, id))
         .returning();
-      if (action === 'restart') await this.postOpener(tx, row!, opener(convo.mode, prefs.comedyStyle)!);
+      if (action === 'restart')
+        await this.postOpener(tx, row!, opener(convo.mode, prefs.comedyStyle)!);
       return row!;
     });
     return toConversationDto(row);
@@ -124,14 +128,22 @@ export class ConversationsService {
   async detail(userId: string, id: string): Promise<ConversationDetail> {
     const convo = await this.getOwned(userId, id);
     const page = await this.messages(userId, id, { limit: 30 });
-    return { ...toConversationDto(convo), messages: page.items, olderMessagesCursor: page.nextCursor };
+    return {
+      ...toConversationDto(convo),
+      messages: page.items,
+      olderMessagesCursor: page.nextCursor,
+    };
   }
 
   /**
    * Messages newest-page-first. Items inside a page are chronological;
    * `nextCursor` fetches the page of older messages.
    */
-  async messages(userId: string, conversationId: string, { cursor, limit }: PaginationQuery): Promise<MessagePage> {
+  async messages(
+    userId: string,
+    conversationId: string,
+    { cursor, limit }: PaginationQuery,
+  ): Promise<MessagePage> {
     await this.getOwned(userId, conversationId);
     const before = decodeCursor(cursor);
     const rows = await this.db
@@ -143,7 +155,10 @@ export class ConversationsService {
           eq(messages.userId, userId),
           inArray(messages.role, [...VISIBLE_ROLES]),
           before
-            ? or(lt(messages.createdAt, before.at), and(eq(messages.createdAt, before.at), lt(messages.id, before.id)))
+            ? or(
+                lt(messages.createdAt, before.at),
+                and(eq(messages.createdAt, before.at), lt(messages.id, before.id)),
+              )
             : undefined,
         ),
       )
@@ -191,5 +206,4 @@ export class ConversationsService {
       .limit(limit);
     return rows.reverse();
   }
-
 }

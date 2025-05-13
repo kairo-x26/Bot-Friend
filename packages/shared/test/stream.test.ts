@@ -5,7 +5,12 @@ const id = '7d1c5d8e-3f0a-4c55-9a3b-5d0e2b9f8a11';
 
 describe('SseParser', () => {
   it('round-trips encoded events', () => {
-    const ev: StreamEvent = { type: 'message.delta', assistantMessageId: id, seq: 0, text: 'hi 👋' };
+    const ev: StreamEvent = {
+      type: 'message.delta',
+      assistantMessageId: id,
+      seq: 0,
+      text: 'hi 👋',
+    };
     expect(new SseParser().push(encodeSseEvent(ev))).toEqual([ev]);
   });
 
@@ -25,7 +30,8 @@ describe('SseParser', () => {
 
   it('accepts CRLF line endings and skips comments and junk', () => {
     const ev: StreamEvent = { type: 'message.delta', assistantMessageId: id, seq: 3, text: 'x' };
-    const wire = `: keep-alive\r\n\r\ndata: not json\r\n\r\n` + encodeSseEvent(ev).replace(/\n/g, '\r\n');
+    const wire =
+      `: keep-alive\r\n\r\ndata: not json\r\n\r\n` + encodeSseEvent(ev).replace(/\n/g, '\r\n');
     expect(new SseParser().push(wire)).toEqual([ev]);
   });
 

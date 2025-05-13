@@ -23,13 +23,7 @@ export interface AiProvider {
 }
 
 export type ModerationCategory =
-  | 'self_harm'
-  | 'harassment'
-  | 'hate'
-  | 'sexual'
-  | 'sexual_minors'
-  | 'violence'
-  | 'illicit';
+  'self_harm' | 'harassment' | 'hate' | 'sexual' | 'sexual_minors' | 'violence' | 'illicit';
 
 export interface ModerationResult {
   flagged: boolean;

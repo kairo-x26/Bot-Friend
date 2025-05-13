@@ -25,7 +25,10 @@ export default function SignIn() {
   const [devEmail, setDevEmail] = useState('');
 
   useEffect(() => {
-    if (Platform.OS === 'ios') void AppleAuthentication.isAvailableAsync().then(setAppleAvailable).catch(() => undefined);
+    if (Platform.OS === 'ios')
+      void AppleAuthentication.isAvailableAsync()
+        .then(setAppleAvailable)
+        .catch(() => undefined);
   }, []);
 
   async function finish(provider: Provider, extra: Record<string, string>) {
@@ -47,10 +50,14 @@ export default function SignIn() {
       // Carry choices made during onboarding over to the account *before* the session
       // flips the navigator, otherwise the first /me fetch would overwrite them.
       if (!session.onboarded) {
-        const { comedyStyle, theme, mascotColor, reducedMotion, largeText } = usePrefs.getState().prefs;
-        await api('PATCH', '/v1/me/preferences', { comedyStyle, theme, mascotColor, reducedMotion, largeText }, { token: res.accessToken }).catch(
-          () => undefined,
-        );
+        const { comedyStyle, theme, mascotColor, reducedMotion, largeText } =
+          usePrefs.getState().prefs;
+        await api(
+          'PATCH',
+          '/v1/me/preferences',
+          { comedyStyle, theme, mascotColor, reducedMotion, largeText },
+          { token: res.accessToken },
+        ).catch(() => undefined);
       }
       await session.setOnboarded(true);
       await session.setSession(res);
@@ -67,7 +74,9 @@ export default function SignIn() {
 
   async function signInWithApple() {
     try {
-      const cred = await AppleAuthentication.signInAsync({ requestedScopes: [AppleAuthentication.AppleAuthenticationScope.FULL_NAME] });
+      const cred = await AppleAuthentication.signInAsync({
+        requestedScopes: [AppleAuthentication.AppleAuthenticationScope.FULL_NAME],
+      });
       if (!cred.identityToken) throw new Error('missing token');
       await finish('apple', { idToken: cred.identityToken });
     } catch (err) {
@@ -77,12 +86,27 @@ export default function SignIn() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: t.colors.background, paddingTop: insets.top + t.space[2], paddingBottom: insets.bottom + t.space[5] }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: t.colors.background,
+        paddingTop: insets.top + t.space[2],
+        paddingBottom: insets.bottom + t.space[5],
+      }}
+    >
       <View style={{ paddingHorizontal: t.space[3] }}>
-        {router.canGoBack() ? <IconButton icon="back" label="Back" onPress={() => router.back()} /> : <View style={{ height: 44 }} />}
+        {router.canGoBack() ? (
+          <IconButton icon="back" label="Back" onPress={() => router.back()} />
+        ) : (
+          <View style={{ height: 44 }} />
+        )}
       </View>
       <View style={{ flex: 1, paddingHorizontal: t.space[6], paddingTop: t.space[4] }}>
-        <Mascot size={88} mood={error ? 'surprised' : 'happy'} color={usePrefs.getState().prefs.mascotColor} />
+        <Mascot
+          size={88}
+          mood={error ? 'surprised' : 'happy'}
+          color={usePrefs.getState().prefs.mascotColor}
+        />
         <Text variant="title" accessibilityRole="header" style={{ marginTop: t.space[5] }}>
           {session.onboarded ? 'Welcome back' : 'Save your chats?'}
         </Text>
@@ -90,7 +114,15 @@ export default function SignIn() {
           Sign in to keep your conversations and settings across devices. Or just try me out first.
         </Text>
         {error ? (
-          <View accessibilityLiveRegion="polite" style={{ marginTop: t.space[5], padding: t.space[4], borderRadius: t.radius.card, backgroundColor: t.colors.dangerSoft }}>
+          <View
+            accessibilityLiveRegion="polite"
+            style={{
+              marginTop: t.space[5],
+              padding: t.space[4],
+              borderRadius: t.radius.card,
+              backgroundColor: t.colors.dangerSoft,
+            }}
+          >
             <Text tone="danger" weight="medium">
               {error}
             </Text>
@@ -102,7 +134,11 @@ export default function SignIn() {
         {appleAvailable ? (
           <AppleAuthentication.AppleAuthenticationButton
             buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
-            buttonStyle={t.dark ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+            buttonStyle={
+              t.dark
+                ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
+                : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
+            }
             cornerRadius={t.radius.button}
             style={{ height: 52 }}
             onPress={signInWithApple}
@@ -136,7 +172,13 @@ export default function SignIn() {
                 fontFamily: t.font.body,
               }}
             />
-            <Button label="Dev sign-in" variant="secondary" loading={busy === 'dev'} disabled={!devEmail.includes('@')} onPress={() => finish('dev', { email: devEmail.trim() })} />
+            <Button
+              label="Dev sign-in"
+              variant="secondary"
+              loading={busy === 'dev'}
+              disabled={!devEmail.includes('@')}
+              onPress={() => finish('dev', { email: devEmail.trim() })}
+            />
           </View>
         ) : null}
         <Button

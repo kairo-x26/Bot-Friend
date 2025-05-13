@@ -1,6 +1,12 @@
 import * as Haptics from 'expo-haptics';
 import type { ReactNode } from 'react';
-import { Platform, Pressable as RNPressable, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  Platform,
+  Pressable as RNPressable,
+  type PressableProps,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { usePrefs } from '@/lib/prefs';
 import { useTheme } from '@/theme/theme';
@@ -16,7 +22,16 @@ export interface TactileProps extends Omit<PressableProps, 'style' | 'children'>
 }
 
 /** Pressable with a springy squish and optional haptic tick. Honors reduced motion. */
-export function Tactile({ style, children, squish = 0.96, haptic = 'light', onPressIn, onPressOut, onPress, ...rest }: TactileProps) {
+export function Tactile({
+  style,
+  children,
+  squish = 0.96,
+  haptic = 'light',
+  onPressIn,
+  onPressOut,
+  onPress,
+  ...rest
+}: TactileProps) {
   const t = useTheme();
   const hapticsEnabled = usePrefs((s) => s.prefs.hapticsEnabled);
   const scale = useSharedValue(1);
@@ -37,7 +52,12 @@ export function Tactile({ style, children, squish = 0.96, haptic = 'light', onPr
       onPress={(e) => {
         if (haptic && hapticsEnabled && Platform.OS !== 'web') {
           if (haptic === 'select') void Haptics.selectionAsync();
-          else void Haptics.impactAsync(haptic === 'medium' ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light);
+          else
+            void Haptics.impactAsync(
+              haptic === 'medium'
+                ? Haptics.ImpactFeedbackStyle.Medium
+                : Haptics.ImpactFeedbackStyle.Light,
+            );
         }
         onPress?.(e);
       }}

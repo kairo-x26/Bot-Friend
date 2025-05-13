@@ -31,7 +31,11 @@ export const useSession = create<SessionState>((set, get) => ({
       storage.get(KEYS.guestToken),
       storage.get(KEYS.onboarded),
     ]);
-    let session: Pick<SessionState, 'token' | 'user' | 'expiresAt'> = { token: null, user: null, expiresAt: null };
+    let session: Pick<SessionState, 'token' | 'user' | 'expiresAt'> = {
+      token: null,
+      user: null,
+      expiresAt: null,
+    };
     if (raw) {
       try {
         const parsed = JSON.parse(raw) as { token: string; user: User; expiresAt: string };
@@ -53,13 +57,23 @@ export const useSession = create<SessionState>((set, get) => ({
     await storage.set(KEYS.session, JSON.stringify(value));
     if (res.guestToken) await storage.set(KEYS.guestToken, res.guestToken);
     if (!res.user.isGuest) await storage.remove(KEYS.guestToken);
-    set({ ...value, guestToken: res.user.isGuest ? (res.guestToken ?? get().guestToken) : null, status: 'signedIn' });
+    set({
+      ...value,
+      guestToken: res.user.isGuest ? (res.guestToken ?? get().guestToken) : null,
+      status: 'signedIn',
+    });
   },
 
   async signOut({ forgetGuest = false } = {}) {
     await storage.remove(KEYS.session);
     if (forgetGuest) await storage.remove(KEYS.guestToken);
-    set({ token: null, user: null, expiresAt: null, status: 'signedOut', guestToken: forgetGuest ? null : get().guestToken });
+    set({
+      token: null,
+      user: null,
+      expiresAt: null,
+      status: 'signedOut',
+      guestToken: forgetGuest ? null : get().guestToken,
+    });
   },
 
   async setOnboarded(v) {

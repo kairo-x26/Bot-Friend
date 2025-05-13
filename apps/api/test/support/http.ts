@@ -28,8 +28,13 @@ export async function call(
   return { status: res.statusCode, json, body: res.body, headers: res.headers };
 }
 
-export async function devLogin(t: TestApp, email = `user-${Math.random().toString(36).slice(2)}@example.com`) {
-  const res = await call(t, 'POST', '/v1/auth/session', { body: { provider: 'dev', email, ageConfirmed: true } });
+export async function devLogin(
+  t: TestApp,
+  email = `user-${Math.random().toString(36).slice(2)}@example.com`,
+) {
+  const res = await call(t, 'POST', '/v1/auth/session', {
+    body: { provider: 'dev', email, ageConfirmed: true },
+  });
   if (res.status !== 200) throw new Error(`login failed: ${res.body}`);
   return res.json as SessionResponse;
 }
@@ -54,7 +59,11 @@ export async function streamMessage(
 ) {
   const res = await call(t, 'POST', `/v1/conversations/${conversationId}/messages/stream`, {
     token,
-    body: { content, idempotencyKey: extra.idempotencyKey ?? randomUUID(), ...(extra.comedyStyle ? { comedyStyle: extra.comedyStyle } : {}) },
+    body: {
+      content,
+      idempotencyKey: extra.idempotencyKey ?? randomUUID(),
+      ...(extra.comedyStyle ? { comedyStyle: extra.comedyStyle } : {}),
+    },
   });
   const events: StreamEvent[] = res.status === 200 ? new SseParser().push(res.body) : [];
   const text = events.flatMap((e) => (e.type === 'message.delta' ? [e.text] : [])).join('');

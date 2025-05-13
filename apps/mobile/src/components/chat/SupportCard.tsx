@@ -21,9 +21,21 @@ export function SupportCard({ text }: { text: string }) {
       </Text>
       <Text style={{ color: t.dark ? t.colors.text : '#123B28' }}>{text}</Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: t.space[2] }}>
-        <Button label="Call 988" variant="secondary" onPress={() => void Linking.openURL('tel:988')} />
-        <Button label="Text 988" variant="secondary" onPress={() => void Linking.openURL('sms:988')} />
-        <Button label="Find help abroad" variant="ghost" onPress={() => void Linking.openURL('https://findahelpline.com')} />
+        <Button
+          label="Call 988"
+          variant="secondary"
+          onPress={() => void Linking.openURL('tel:988')}
+        />
+        <Button
+          label="Text 988"
+          variant="secondary"
+          onPress={() => void Linking.openURL('sms:988')}
+        />
+        <Button
+          label="Find help abroad"
+          variant="ghost"
+          onPress={() => void Linking.openURL('https://findahelpline.com')}
+        />
       </View>
     </View>
   );

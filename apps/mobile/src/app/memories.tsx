@@ -68,19 +68,53 @@ export default function Memories() {
           style={inputStyle}
         />
         <View style={{ flexDirection: 'row', gap: t.space[2] }}>
-          <Button label="Save" onPress={() => run(async () => { await m.edit.mutateAsync(editing); setEditing(null); })} disabled={editing.content.trim().length < 2} />
+          <Button
+            label="Save"
+            onPress={() =>
+              run(async () => {
+                await m.edit.mutateAsync(editing);
+                setEditing(null);
+              })
+            }
+            disabled={editing.content.trim().length < 2}
+          />
           <Button label="Cancel" variant="ghost" onPress={() => setEditing(null)} />
         </View>
       </View>
     ) : (
-      <View key={item.id} style={{ flexDirection: 'row', alignItems: 'center', gap: t.space[2], paddingVertical: t.space[2], minHeight: 52 }}>
+      <View
+        key={item.id}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: t.space[2],
+          paddingVertical: t.space[2],
+          minHeight: 52,
+        }}
+      >
         <Text style={{ flex: 1 }}>{item.content}</Text>
         {item.status === 'suggested' ? (
-          <IconButton icon="check" label={`Remember: ${item.content}`} tone="soft" size={40} onPress={() => run(() => m.approve.mutateAsync(item.id))} />
+          <IconButton
+            icon="check"
+            label={`Remember: ${item.content}`}
+            tone="soft"
+            size={40}
+            onPress={() => run(() => m.approve.mutateAsync(item.id))}
+          />
         ) : (
-          <IconButton icon="edit" label={`Edit: ${item.content}`} size={40} onPress={() => setEditing({ id: item.id, content: item.content })} />
+          <IconButton
+            icon="edit"
+            label={`Edit: ${item.content}`}
+            size={40}
+            onPress={() => setEditing({ id: item.id, content: item.content })}
+          />
         )}
-        <IconButton icon="trash" label={`Forget: ${item.content}`} size={40} onPress={() => run(() => m.remove.mutateAsync(item.id))} />
+        <IconButton
+          icon="trash"
+          label={`Forget: ${item.content}`}
+          size={40}
+          onPress={() => run(() => m.remove.mutateAsync(item.id))}
+        />
       </View>
     );
 
@@ -102,7 +136,9 @@ export default function Memories() {
 
       {error ? <Text tone="danger">{error}</Text> : null}
       {memories.isLoading ? <ActivityIndicator color={t.colors.primary} /> : null}
-      {memories.isError ? <Text tone="muted">Couldn’t load memories. Pull to refresh or try again later.</Text> : null}
+      {memories.isError ? (
+        <Text tone="muted">Couldn’t load memories. Pull to refresh or try again later.</Text>
+      ) : null}
 
       {suggested.length > 0 ? (
         <Section title="Want me to remember these?">
@@ -117,7 +153,14 @@ export default function Memories() {
 
       <Section title="Remembered">
         {approved.length === 0 ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.space[3], paddingVertical: t.space[4] }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: t.space[3],
+              paddingVertical: t.space[4],
+            }}
+          >
             <Mascot size={44} mood="thinking" color={prefs.mascotColor} />
             <Text tone="muted" style={{ flex: 1 }}>
               Nothing yet. Add something below, like your pet’s name or the jokes you can’t stand.
@@ -148,7 +191,12 @@ export default function Memories() {
           label="Add"
           disabled={draft.trim().length < 2}
           loading={m.add.isPending}
-          onPress={() => run(async () => { await m.add.mutateAsync(draft.trim()); setDraft(''); })}
+          onPress={() =>
+            run(async () => {
+              await m.add.mutateAsync(draft.trim());
+              setDraft('');
+            })
+          }
           testID="memory-add"
         />
       </View>
@@ -157,7 +205,13 @@ export default function Memories() {
         <Button
           label="Forget everything"
           variant="danger"
-          onPress={() => confirm('Forget everything?', 'This deletes every memory, including suggestions.', () => void run(() => m.eraseAll.mutateAsync()))}
+          onPress={() =>
+            confirm(
+              'Forget everything?',
+              'This deletes every memory, including suggestions.',
+              () => void run(() => m.eraseAll.mutateAsync()),
+            )
+          }
         />
       ) : null}
     </Screen>

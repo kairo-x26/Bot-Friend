@@ -51,6 +51,10 @@ export class ConversationsController {
 
   @Get(':id/messages')
   messages(@CurrentUser() user: AuthUser, @Param('id') id: string, @Query() query: unknown) {
-    return this.conversations.messages(user.id, assertUuid(id, 'Conversation'), parse(paginationQuerySchema, query));
+    return this.conversations.messages(
+      user.id,
+      assertUuid(id, 'Conversation'),
+      parse(paginationQuerySchema, query),
+    );
   }
 }

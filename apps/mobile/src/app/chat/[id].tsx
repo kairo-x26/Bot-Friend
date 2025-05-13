@@ -1,7 +1,14 @@
 import { GAMES, PERSONALITIES, type ComedyStyle } from '@bot-friend/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Platform, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Composer } from '@/components/chat/Composer';
 import { MessageBubble } from '@/components/chat/MessageBubble';
@@ -10,7 +17,13 @@ import { StylePicker } from '@/components/chat/StylePicker';
 import { SuggestionRow } from '@/components/chat/SuggestionRow';
 import { Mascot } from '@/components/mascot/Mascot';
 import { Button, IconButton, ListRow, Sheet, Tactile, Text } from '@/components/ui';
-import { useConversation, useDeleteConversation, useFeatures, useGameAction, useUpdatePreferences } from '@/lib/api/hooks';
+import {
+  useConversation,
+  useDeleteConversation,
+  useFeatures,
+  useGameAction,
+  useUpdatePreferences,
+} from '@/lib/api/hooks';
 import type { ChatItem } from '@/lib/chat/reducer';
 import { useChatThread } from '@/lib/chat/useChatThread';
 import { usePrefs } from '@/lib/prefs';
@@ -74,7 +87,15 @@ export default function ChatScreen() {
 
   if (detail.isError) {
     return (
-      <View style={{ flex: 1, backgroundColor: t.colors.background, padding: t.space[6], paddingTop: insets.top + t.space[6], gap: t.space[4] }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: t.colors.background,
+          padding: t.space[6],
+          paddingTop: insets.top + t.space[6],
+          gap: t.space[4],
+        }}
+      >
         <Mascot size={96} mood="surprised" />
         <Text variant="heading">This chat isn’t available</Text>
         <Text tone="muted">It may have been deleted. Head back and start a new one.</Text>
@@ -103,7 +124,13 @@ export default function ChatScreen() {
         }}
       >
         <IconButton icon="back" label="Back" onPress={() => router.back()} />
-        <Mascot size={44} mood={thread.mood} color={prefs.mascotColor} interactive testID="chat-mascot" />
+        <Mascot
+          size={44}
+          mood={thread.mood}
+          color={prefs.mascotColor}
+          interactive
+          testID="chat-mascot"
+        />
         <View style={{ flex: 1 }}>
           <Text variant="subheading" display weight="semibold" numberOfLines={1}>
             {detail.data?.title ?? ' '}
@@ -121,9 +148,19 @@ export default function ChatScreen() {
           </Tactile>
         </View>
         {features.data?.voice && !isGuest ? (
-          <IconButton icon="mic" label="Start voice chat" onPress={() => router.push('/voice')} testID="chat-voice" />
+          <IconButton
+            icon="mic"
+            label="Start voice chat"
+            onPress={() => router.push('/voice')}
+            testID="chat-voice"
+          />
         ) : null}
-        <IconButton icon="more" label="Chat options" onPress={() => setMoreOpen(true)} testID="chat-more" />
+        <IconButton
+          icon="more"
+          label="Chat options"
+          onPress={() => setMoreOpen(true)}
+          testID="chat-more"
+        />
       </View>
 
       {gameInfo && game ? (
@@ -149,7 +186,11 @@ export default function ChatScreen() {
             label={game.active ? 'End game' : 'Play again'}
             variant="ghost"
             loading={gameAction.isPending}
-            onPress={() => gameAction.mutate(game.active ? 'end' : 'restart', { onSuccess: () => detail.refetch() })}
+            onPress={() =>
+              gameAction.mutate(game.active ? 'end' : 'restart', {
+                onSuccess: () => detail.refetch(),
+              })
+            }
           />
         </View>
       ) : null}
@@ -167,11 +208,23 @@ export default function ChatScreen() {
           keyboardDismissMode="interactive"
           onEndReached={thread.hasOlder ? thread.loadOlder : undefined}
           onEndReachedThreshold={0.3}
-          ListFooterComponent={thread.loadingOlder ? <ActivityIndicator color={t.colors.primary} /> : undefined}
+          ListFooterComponent={
+            thread.loadingOlder ? <ActivityIndicator color={t.colors.primary} /> : undefined
+          }
           ListEmptyComponent={
-            <View style={{ transform: [{ scaleY: -1 }], alignItems: 'flex-start', gap: t.space[3], paddingTop: t.space[10] }}>
+            <View
+              style={{
+                transform: [{ scaleY: -1 }],
+                alignItems: 'flex-start',
+                gap: t.space[3],
+                paddingTop: t.space[10],
+              }}
+            >
               <Text variant="heading">Say anything.</Text>
-              <Text tone="muted">A bad day, a weird thought, a request for the worst pun you’ve ever heard. I’m listening.</Text>
+              <Text tone="muted">
+                A bad day, a weird thought, a request for the worst pun you’ve ever heard. I’m
+                listening.
+              </Text>
             </View>
           }
           renderItem={({ item }) => (
@@ -188,7 +241,16 @@ export default function ChatScreen() {
       )}
 
       {thread.quota ? (
-        <View style={{ marginHorizontal: t.space[4], marginBottom: t.space[2], padding: t.space[4], borderRadius: t.radius.card, backgroundColor: t.colors.primarySoft, gap: t.space[2] }}>
+        <View
+          style={{
+            marginHorizontal: t.space[4],
+            marginBottom: t.space[2],
+            padding: t.space[4],
+            borderRadius: t.radius.card,
+            backgroundColor: t.colors.primarySoft,
+            gap: t.space[2],
+          }}
+        >
           <Text weight="semibold">{thread.quota.message}</Text>
           {thread.quota.guest && isGuest ? (
             <Button label="Create a free account" onPress={() => router.push('/(tabs)/profile')} />
@@ -197,7 +259,9 @@ export default function ChatScreen() {
       ) : null}
 
       <View style={{ paddingBottom: insets.bottom + t.space[2], paddingTop: t.space[2] }}>
-        {!thread.streaming ? <SuggestionRow suggestions={thread.suggestions} onPick={(s) => thread.send(s)} /> : null}
+        {!thread.streaming ? (
+          <SuggestionRow suggestions={thread.suggestions} onPick={(s) => thread.send(s)} />
+        ) : null}
         <View style={{ paddingHorizontal: t.space[3] }}>
           <Composer
             onSend={(text) => thread.send(text)}
@@ -208,11 +272,34 @@ export default function ChatScreen() {
         </View>
       </View>
 
-      <MessageMenu item={menuItem} onClose={() => setMenuItem(null)} onReacted={(mid, reaction) => thread.dispatch({ type: 'react', id: mid, reaction })} />
-      <StylePicker visible={stylePicker} value={prefs.comedyStyle} onPick={pickStyle} onClose={() => setStylePicker(false)} />
+      <MessageMenu
+        item={menuItem}
+        onClose={() => setMenuItem(null)}
+        onReacted={(mid, reaction) => thread.dispatch({ type: 'react', id: mid, reaction })}
+      />
+      <StylePicker
+        visible={stylePicker}
+        value={prefs.comedyStyle}
+        onPick={pickStyle}
+        onClose={() => setStylePicker(false)}
+      />
       <Sheet visible={moreOpen} onClose={() => setMoreOpen(false)} title="Chat options">
-        <ListRow icon="sparkle" label="Switch vibe" detail={PERSONALITIES[prefs.comedyStyle].name} onPress={() => { setMoreOpen(false); setStylePicker(true); }} />
-        <ListRow icon="trash" label="Delete chat" tone="danger" onPress={confirmDelete} testID="chat-delete" />
+        <ListRow
+          icon="sparkle"
+          label="Switch vibe"
+          detail={PERSONALITIES[prefs.comedyStyle].name}
+          onPress={() => {
+            setMoreOpen(false);
+            setStylePicker(true);
+          }}
+        />
+        <ListRow
+          icon="trash"
+          label="Delete chat"
+          tone="danger"
+          onPress={confirmDelete}
+          testID="chat-delete"
+        />
       </Sheet>
     </KeyboardAvoidingView>
   );

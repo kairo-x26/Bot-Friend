@@ -29,8 +29,27 @@ export function StylePicker({
             }}
             testID={`picker-${s}`}
             trailing={
-              <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: s === value ? t.colors.primary : t.colors.border, alignItems: 'center', justifyContent: 'center' }}>
-                {s === value ? <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: t.colors.primary }} /> : null}
+              <View
+                style={{
+                  width: 22,
+                  height: 22,
+                  borderRadius: 11,
+                  borderWidth: 2,
+                  borderColor: s === value ? t.colors.primary : t.colors.border,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {s === value ? (
+                  <View
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: 5,
+                      backgroundColor: t.colors.primary,
+                    }}
+                  />
+                ) : null}
               </View>
             }
           />

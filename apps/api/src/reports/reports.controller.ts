@@ -10,7 +10,11 @@ export class ReportsController {
   constructor(private readonly reports: ReportsService) {}
 
   @Post()
-  async create(@CurrentUser() user: AuthUser, @Body() body: unknown, @Res({ passthrough: true }) reply: FastifyReply) {
+  async create(
+    @CurrentUser() user: AuthUser,
+    @Body() body: unknown,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ) {
     const { report, created } = await this.reports.create(user.id, parse(createReportSchema, body));
     reply.status(created ? 201 : 200);
     return report;

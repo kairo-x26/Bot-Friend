@@ -25,14 +25,18 @@ export const users = pgTable(
     /** Stable subject from the identity provider; hashed guest token for guests. */
     providerSubject: text('provider_subject').notNull(),
     displayName: text('display_name'),
-    role: text('role', { enum: ['user', 'moderator', 'admin'] }).notNull().default('user'),
+    role: text('role', { enum: ['user', 'moderator', 'admin'] })
+      .notNull()
+      .default('user'),
     status: text('status', { enum: ['active', 'suspended', 'deleting', 'deleted'] })
       .notNull()
       .default('active'),
     ageEligibilityStatus: text('age_eligibility_status', { enum: ['confirmed', 'ineligible'] })
       .notNull()
       .default('confirmed'),
-    entitlement: text('entitlement', { enum: ['guest', 'free', 'premium'] }).notNull().default('free'),
+    entitlement: text('entitlement', { enum: ['guest', 'free', 'premium'] })
+      .notNull()
+      .default('free'),
     /** Bumped on deletion/suspension to revoke every outstanding session token. */
     sessionVersion: integer('session_version').notNull().default(1),
     createdAt: createdAt(),
@@ -41,7 +45,9 @@ export const users = pgTable(
   },
   (t) => [
     uniqueIndex('users_provider_subject_idx').on(t.provider, t.providerSubject),
-    index('users_guest_created_idx').on(t.createdAt).where(sql`provider = 'guest'`),
+    index('users_guest_created_idx')
+      .on(t.createdAt)
+      .where(sql`provider = 'guest'`),
   ],
 );
 
@@ -52,10 +58,17 @@ export const userPreferences = pgTable('user_preferences', {
   comedyStyle: text('comedy_style', { enum: ['wholesome', 'chaotic', 'sarcastic', 'chill'] })
     .notNull()
     .default('wholesome'),
-  energy: text('energy', { enum: ['low', 'medium', 'high'] }).notNull().default('medium'),
-  humorBoundaries: text('humor_boundaries').array().notNull().default(sql`'{}'::text[]`),
+  energy: text('energy', { enum: ['low', 'medium', 'high'] })
+    .notNull()
+    .default('medium'),
+  humorBoundaries: text('humor_boundaries')
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
   roastOptIn: boolean('roast_opt_in').notNull().default(false),
-  theme: text('theme', { enum: ['system', 'light', 'dark'] }).notNull().default('system'),
+  theme: text('theme', { enum: ['system', 'light', 'dark'] })
+    .notNull()
+    .default('system'),
   reducedMotion: boolean('reduced_motion').notNull().default(false),
   largeText: boolean('large_text').notNull().default(false),
   hapticsEnabled: boolean('haptics_enabled').notNull().default(true),
@@ -95,7 +108,9 @@ export const conversations = pgTable(
     })
       .notNull()
       .default('chat'),
-    comedyStyle: text('comedy_style', { enum: ['wholesome', 'chaotic', 'sarcastic', 'chill'] }).notNull(),
+    comedyStyle: text('comedy_style', {
+      enum: ['wholesome', 'chaotic', 'sarcastic', 'chill'],
+    }).notNull(),
     gameState: jsonb('game_state').$type<Record<string, unknown> | null>(),
     lastMessagePreview: text('last_message_preview'),
     createdAt: createdAt(),
@@ -124,7 +139,10 @@ export const messages = pgTable(
     replyToId: uuid('reply_to_id'),
     idempotencyKey: text('idempotency_key'),
     reaction: text('reaction', { enum: ['laugh', 'love', 'meh', 'up', 'down'] }),
-    suggestions: jsonb('suggestions').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    suggestions: jsonb('suggestions')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     modelId: text('model_id'),
     promptVersion: text('prompt_version'),
     errorCode: text('error_code'),
@@ -159,7 +177,9 @@ export const usageRecords = pgTable(
     userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
     conversationId: uuid('conversation_id'),
     messageId: uuid('message_id'),
-    kind: text('kind', { enum: ['chat', 'moderation', 'memory', 'voice'] }).notNull().default('chat'),
+    kind: text('kind', { enum: ['chat', 'moderation', 'memory', 'voice'] })
+      .notNull()
+      .default('chat'),
     modelId: text('model_id').notNull(),
     inputTokens: integer('input_tokens').notNull().default(0),
     outputTokens: integer('output_tokens').notNull().default(0),
@@ -183,7 +203,15 @@ export const contentReports = pgTable(
     messageId: uuid('message_id').notNull(),
     conversationId: uuid('conversation_id'),
     category: text('category', {
-      enum: ['offensive', 'harassment', 'sexual', 'self_harm', 'misinformation', 'not_funny', 'other'],
+      enum: [
+        'offensive',
+        'harassment',
+        'sexual',
+        'self_harm',
+        'misinformation',
+        'not_funny',
+        'other',
+      ],
     }).notNull(),
     note: text('note'),
     status: text('status', { enum: ['open', 'triaged', 'actioned', 'dismissed'] })
@@ -220,10 +248,16 @@ export const auditEvents = pgTable(
     action: text('action').notNull(),
     targetType: text('target_type').notNull(),
     targetId: text('target_id').notNull(),
-    metadata: jsonb('metadata').$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
+    metadata: jsonb('metadata')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
     occurredAt: ts('occurred_at').notNull().defaultNow(),
   },
-  (t) => [index('audit_events_occurred_idx').on(t.occurredAt), index('audit_events_target_idx').on(t.targetId)],
+  (t) => [
+    index('audit_events_occurred_idx').on(t.occurredAt),
+    index('audit_events_target_idx').on(t.targetId),
+  ],
 );
 
 export const deletionJobs = pgTable('deletion_jobs', {
@@ -235,7 +269,10 @@ export const deletionJobs = pgTable('deletion_jobs', {
     .default('scheduled'),
   attempts: integer('attempts').notNull().default(0),
   lastError: text('last_error'),
-  steps: jsonb('steps').$type<Record<string, string>>().notNull().default(sql`'{}'::jsonb`),
+  steps: jsonb('steps')
+    .$type<Record<string, string>>()
+    .notNull()
+    .default(sql`'{}'::jsonb`),
   requestedAt: ts('requested_at').notNull().defaultNow(),
   completedAt: ts('completed_at'),
 });
@@ -250,7 +287,9 @@ export const subscriptions = pgTable(
     provider: text('provider', { enum: ['apple', 'google'] }).notNull(),
     productId: text('product_id').notNull(),
     originalTransactionId: text('original_transaction_id').notNull(),
-    entitlement: text('entitlement', { enum: ['premium'] }).notNull().default('premium'),
+    entitlement: text('entitlement', { enum: ['premium'] })
+      .notNull()
+      .default('premium'),
     status: text('status', { enum: ['active', 'grace', 'expired', 'revoked'] }).notNull(),
     expiresAt: ts('expires_at'),
     createdAt: createdAt(),
@@ -275,7 +314,9 @@ export const memoryItems = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     content: text('content').notNull(),
-    consentStatus: text('consent_status', { enum: ['suggested', 'approved', 'rejected'] }).notNull(),
+    consentStatus: text('consent_status', {
+      enum: ['suggested', 'approved', 'rejected'],
+    }).notNull(),
     sourceMessageId: uuid('source_message_id'),
     createdAt: createdAt(),
     updatedAt: ts('updated_at').notNull().defaultNow(),
@@ -290,7 +331,8 @@ export const analyticsEvents = pgTable(
     /** Pseudonymous; never joined with raw content. */
     userId: uuid('user_id'),
     name: text('name').notNull(),
-    properties: jsonb('properties').$type<Record<string, string | number | boolean | null>>()
+    properties: jsonb('properties')
+      .$type<Record<string, string | number | boolean | null>>()
       .notNull()
       .default(sql`'{}'::jsonb`),
     occurredAt: ts('occurred_at').notNull().defaultNow(),

@@ -1,6 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { LocalModeration, asksIfHuman, detectsDistress } from '../ai/local-moderation.js';
-import { MODERATION_PROVIDER, type ModerationCategory, type ModerationProvider } from '../ai/provider.js';
+import {
+  MODERATION_PROVIDER,
+  type ModerationCategory,
+  type ModerationProvider,
+} from '../ai/provider.js';
 import { OutputGuard } from './output-guard.js';
 
 export type InputVerdict =
@@ -17,7 +21,13 @@ export const BLOCKED_INPUT_MESSAGE =
 export const BLOCKED_OUTPUT_MESSAGE =
   'Hmm, that reply came out wrong, so I scrapped it. Want to try asking a different way?';
 
-const BLOCKING: ReadonlySet<ModerationCategory> = new Set(['sexual_minors', 'hate', 'violence', 'sexual', 'illicit']);
+const BLOCKING: ReadonlySet<ModerationCategory> = new Set([
+  'sexual_minors',
+  'hate',
+  'violence',
+  'sexual',
+  'illicit',
+]);
 
 @Injectable()
 export class SafetyService {
@@ -44,7 +54,8 @@ export class SafetyService {
    * directly, guarantee the reply says so even if the model got playful.
    */
   ensureAiDisclosure(userText: string, reply: string): string {
-    if (!asksIfHuman(userText) || /\b(AI|artificial intelligence|a bot|chatbot)\b/i.test(reply)) return reply;
+    if (!asksIfHuman(userText) || /\b(AI|artificial intelligence|a bot|chatbot)\b/i.test(reply))
+      return reply;
     return `${reply}\n\n(Just so you know: I’m an AI, not a person.)`;
   }
 
@@ -66,7 +77,9 @@ export class SafetyService {
         res.categories.forEach((c) => found.add(c));
       } catch (err) {
         // Fail open to the local classifier rather than taking chat down with the moderation API.
-        this.logger.warn(`Moderation provider unavailable, using local checks only: ${(err as Error).message}`);
+        this.logger.warn(
+          `Moderation provider unavailable, using local checks only: ${(err as Error).message}`,
+        );
       }
     }
     return [...found];

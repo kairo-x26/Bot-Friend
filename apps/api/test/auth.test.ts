@@ -16,7 +16,9 @@ afterAll(() => t.close());
 describe('POST /v1/auth/session', () => {
   it('blocks users who do not confirm they are adults, without creating an account', async () => {
     const before = await t.db.select().from(users);
-    const res = await call(t, 'POST', '/v1/auth/session', { body: { provider: 'guest', ageConfirmed: false } });
+    const res = await call(t, 'POST', '/v1/auth/session', {
+      body: { provider: 'guest', ageConfirmed: false },
+    });
     expect(res.status).toBe(403);
     expect(res.json.error.code).toBe('age_ineligible');
     expect(await t.db.select().from(users)).toHaveLength(before.length);
@@ -47,9 +49,17 @@ describe('POST /v1/auth/session', () => {
 
   it('moves guest conversations to the account on upgrade', async () => {
     const guest = await guestLogin(t);
-    await call(t, 'PATCH', '/v1/me/preferences', { token: guest.accessToken, body: { comedyStyle: 'chaotic' } });
+    await call(t, 'PATCH', '/v1/me/preferences', {
+      token: guest.accessToken,
+      body: { comedyStyle: 'chaotic' },
+    });
     const res = await call(t, 'POST', '/v1/auth/session', {
-      body: { provider: 'dev', email: 'upgrader@example.com', ageConfirmed: true, upgradeGuestToken: guest.guestToken },
+      body: {
+        provider: 'dev',
+        email: 'upgrader@example.com',
+        ageConfirmed: true,
+        upgradeGuestToken: guest.guestToken,
+      },
     });
     expect(res.status).toBe(200);
     const me = await call(t, 'GET', '/v1/me', { token: res.json.accessToken });
@@ -93,7 +103,9 @@ describe('apple / google sign-in', () => {
       },
     );
     const login = (idToken: string) =>
-      call(t2, 'POST', '/v1/auth/session', { body: { provider: 'apple', idToken, ageConfirmed: true } });
+      call(t2, 'POST', '/v1/auth/session', {
+        body: { provider: 'apple', idToken, ageConfirmed: true },
+      });
     const a = await login('token-aaaaaa');
     const b = await login('token-aaaaaa');
     expect(a.status).toBe(200);
@@ -114,7 +126,10 @@ describe('session guard', () => {
     const s = await devLogin(t);
     expect((await call(t, 'GET', '/v1/me', { token: s.accessToken })).status).toBe(200);
     const [row] = await t.db.select().from(users).where(eq(users.id, s.user.id));
-    await t.db.update(users).set({ sessionVersion: row!.sessionVersion + 1 }).where(eq(users.id, s.user.id));
+    await t.db
+      .update(users)
+      .set({ sessionVersion: row!.sessionVersion + 1 })
+      .where(eq(users.id, s.user.id));
     expect((await call(t, 'GET', '/v1/me', { token: s.accessToken })).status).toBe(401);
   });
 
@@ -132,14 +147,22 @@ describe('/v1/me', () => {
     const res = await call(t, 'GET', '/v1/me', { token: s.accessToken });
     expect(res.status).toBe(200);
     expect(res.json.user.id).toBe(s.user.id);
-    expect(res.json.preferences).toMatchObject({ comedyStyle: 'wholesome', roastOptIn: false, theme: 'system' });
+    expect(res.json.preferences).toMatchObject({
+      comedyStyle: 'wholesome',
+      roastOptIn: false,
+      theme: 'system',
+    });
   });
 
   it('patches preferences and dedupes boundaries', async () => {
     const s = await devLogin(t);
     const res = await call(t, 'PATCH', '/v1/me/preferences', {
       token: s.accessToken,
-      body: { comedyStyle: 'sarcastic', humorBoundaries: ['family', 'family', 'work'], theme: 'dark' },
+      body: {
+        comedyStyle: 'sarcastic',
+        humorBoundaries: ['family', 'family', 'work'],
+        theme: 'dark',
+      },
     });
     expect(res.status).toBe(200);
     expect(res.json).toMatchObject({ comedyStyle: 'sarcastic', theme: 'dark' });
@@ -148,7 +171,10 @@ describe('/v1/me', () => {
 
   it('rejects unknown values', async () => {
     const s = await devLogin(t);
-    const res = await call(t, 'PATCH', '/v1/me/preferences', { token: s.accessToken, body: { comedyStyle: 'cruel' } });
+    const res = await call(t, 'PATCH', '/v1/me/preferences', {
+      token: s.accessToken,
+      body: { comedyStyle: 'cruel' },
+    });
     expect(res.status).toBe(400);
   });
 });
@@ -175,8 +201,14 @@ describe('OidcIdTokenVerifier', () => {
       subject: 'google-sub-1',
       name: 'Ada',
     });
-    await expect(verifier.verify('google', await sign('someone-else'))).rejects.toThrow(/could not be verified/);
-    await expect(verifier.verify('google', await sign('my-client', 'https://evil.example'))).rejects.toThrow();
-    await expect(verifier.verify('apple', await sign('my-client'))).rejects.toThrow(/not configured/);
+    await expect(verifier.verify('google', await sign('someone-else'))).rejects.toThrow(
+      /could not be verified/,
+    );
+    await expect(
+      verifier.verify('google', await sign('my-client', 'https://evil.example')),
+    ).rejects.toThrow();
+    await expect(verifier.verify('apple', await sign('my-client'))).rejects.toThrow(
+      /not configured/,
+    );
   });
 });

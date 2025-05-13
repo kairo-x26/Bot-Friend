@@ -24,12 +24,24 @@ beforeAll(async () => {
 });
 afterAll(() => t.close());
 
-async function optedIn(hour: number, device = `ExponentPushToken[${Math.random().toString(36).slice(2)}]`) {
+async function optedIn(
+  hour: number,
+  device = `ExponentPushToken[${Math.random().toString(36).slice(2)}]`,
+) {
   const s = await devLogin(t);
-  await call(t, 'PATCH', '/v1/me/preferences', { token: s.accessToken, body: { remindersEnabled: true, reminderHour: hour } });
-  await call(t, 'POST', '/v1/devices', { token: s.accessToken, body: { token: device, platform: 'ios' } });
+  await call(t, 'PATCH', '/v1/me/preferences', {
+    token: s.accessToken,
+    body: { remindersEnabled: true, reminderHour: hour },
+  });
+  await call(t, 'POST', '/v1/devices', {
+    token: s.accessToken,
+    body: { token: device, platform: 'ios' },
+  });
   // Pretend they were last here two days ago.
-  await t.db.update(users).set({ lastSeenAt: new Date(at(hour).getTime() - 48 * 3600_000) }).where(eq(users.id, s.user.id));
+  await t.db
+    .update(users)
+    .set({ lastSeenAt: new Date(at(hour).getTime() - 48 * 3600_000) })
+    .where(eq(users.id, s.user.id));
   return { ...s, device };
 }
 
@@ -48,12 +60,24 @@ describe('reminders', () => {
   it('skips people who were active recently, guests and those who opted out', async () => {
     const svc = t.app.get(ReminderService);
     const active = await optedIn(11);
-    await t.db.update(users).set({ lastSeenAt: new Date(at(11).getTime() - 3600_000) }).where(eq(users.id, active.user.id));
+    await t.db
+      .update(users)
+      .set({ lastSeenAt: new Date(at(11).getTime() - 3600_000) })
+      .where(eq(users.id, active.user.id));
     const off = await optedIn(11);
-    await call(t, 'PATCH', '/v1/me/preferences', { token: off.accessToken, body: { remindersEnabled: false } });
+    await call(t, 'PATCH', '/v1/me/preferences', {
+      token: off.accessToken,
+      body: { remindersEnabled: false },
+    });
     const g = await guestLogin(t);
-    await call(t, 'PATCH', '/v1/me/preferences', { token: g.accessToken, body: { remindersEnabled: true, reminderHour: 11 } });
-    await call(t, 'POST', '/v1/devices', { token: g.accessToken, body: { token: 'ExponentPushToken[guest]', platform: 'ios' } });
+    await call(t, 'PATCH', '/v1/me/preferences', {
+      token: g.accessToken,
+      body: { remindersEnabled: true, reminderHour: 11 },
+    });
+    await call(t, 'POST', '/v1/devices', {
+      token: g.accessToken,
+      body: { token: 'ExponentPushToken[guest]', platform: 'ios' },
+    });
     expect((await svc.tick(at(11))).sent).toBe(0);
   });
 
@@ -61,12 +85,17 @@ describe('reminders', () => {
     const svc = t.app.get(ReminderService);
     const u = await optedIn(13, 'ExponentPushToken[dead-device]');
     await svc.tick(at(13));
-    expect(await t.db.select().from(pushDevices).where(eq(pushDevices.userId, u.user.id))).toHaveLength(0);
+    expect(
+      await t.db.select().from(pushDevices).where(eq(pushDevices.userId, u.user.id)),
+    ).toHaveLength(0);
   });
 
   it('defaults the hour when reminders are switched on without one', async () => {
     const s = await devLogin(t);
-    const res = await call(t, 'PATCH', '/v1/me/preferences', { token: s.accessToken, body: { remindersEnabled: true } });
+    const res = await call(t, 'PATCH', '/v1/me/preferences', {
+      token: s.accessToken,
+      body: { remindersEnabled: true },
+    });
     expect(res.json.reminderHour).toBe(18);
   });
 
@@ -74,11 +103,19 @@ describe('reminders', () => {
     const a = await devLogin(t);
     const b = await devLogin(t);
     const token = 'ExponentPushToken[shared-phone]';
-    await call(t, 'POST', '/v1/devices', { token: a.accessToken, body: { token, platform: 'android' } });
-    await call(t, 'POST', '/v1/devices', { token: b.accessToken, body: { token, platform: 'android' } });
+    await call(t, 'POST', '/v1/devices', {
+      token: a.accessToken,
+      body: { token, platform: 'android' },
+    });
+    await call(t, 'POST', '/v1/devices', {
+      token: b.accessToken,
+      body: { token, platform: 'android' },
+    });
     const rows = await t.db.select().from(pushDevices).where(eq(pushDevices.token, token));
     expect(rows.map((r) => r.userId)).toEqual([b.user.id]);
     await call(t, 'DELETE', `/v1/devices/${encodeURIComponent(token)}`, { token: b.accessToken });
-    expect(await t.db.select().from(pushDevices).where(eq(pushDevices.token, token))).toHaveLength(0);
+    expect(await t.db.select().from(pushDevices).where(eq(pushDevices.token, token))).toHaveLength(
+      0,
+    );
   });
 });

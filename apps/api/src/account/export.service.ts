@@ -24,7 +24,10 @@ export class ExportService {
   ) {}
 
   async export(user: UserRow) {
-    const [prefs] = await this.db.select().from(userPreferences).where(eq(userPreferences.userId, user.id));
+    const [prefs] = await this.db
+      .select()
+      .from(userPreferences)
+      .where(eq(userPreferences.userId, user.id));
     const convos = await this.db
       .select()
       .from(conversations)
@@ -41,21 +44,52 @@ export class ExportService {
       list.push(toMessageDto(m));
       byConvo.set(m.conversationId, list);
     }
-    const memories = await this.db.select().from(memoryItems).where(eq(memoryItems.userId, user.id));
-    const reports = await this.db.select().from(contentReports).where(eq(contentReports.reporterId, user.id));
-    const subs = await this.db.select().from(subscriptions).where(eq(subscriptions.userId, user.id));
+    const memories = await this.db
+      .select()
+      .from(memoryItems)
+      .where(eq(memoryItems.userId, user.id));
+    const reports = await this.db
+      .select()
+      .from(contentReports)
+      .where(eq(contentReports.reporterId, user.id));
+    const subs = await this.db
+      .select()
+      .from(subscriptions)
+      .where(eq(subscriptions.userId, user.id));
 
-    await this.audit.record({ actorId: user.id, action: 'account.exported', targetType: 'user', targetId: user.id });
+    await this.audit.record({
+      actorId: user.id,
+      action: 'account.exported',
+      targetType: 'user',
+      targetId: user.id,
+    });
 
     return {
       formatVersion: EXPORT_FORMAT_VERSION,
       exportedAt: new Date().toISOString(),
       user: toUserDto(user),
       preferences: prefs ? toPreferencesDto(prefs) : null,
-      conversations: convos.map((c) => ({ ...toConversationDto(c), messages: byConvo.get(c.id) ?? [] })),
-      memories: memories.map((m) => ({ content: m.content, status: m.consentStatus, createdAt: m.createdAt.toISOString() })),
-      reports: reports.map((r) => ({ messageId: r.messageId, category: r.category, status: r.status, createdAt: r.createdAt.toISOString() })),
-      subscriptions: subs.map((s) => ({ provider: s.provider, productId: s.productId, status: s.status, expiresAt: s.expiresAt?.toISOString() ?? null })),
+      conversations: convos.map((c) => ({
+        ...toConversationDto(c),
+        messages: byConvo.get(c.id) ?? [],
+      })),
+      memories: memories.map((m) => ({
+        content: m.content,
+        status: m.consentStatus,
+        createdAt: m.createdAt.toISOString(),
+      })),
+      reports: reports.map((r) => ({
+        messageId: r.messageId,
+        category: r.category,
+        status: r.status,
+        createdAt: r.createdAt.toISOString(),
+      })),
+      subscriptions: subs.map((s) => ({
+        provider: s.provider,
+        productId: s.productId,
+        status: s.status,
+        expiresAt: s.expiresAt?.toISOString() ?? null,
+      })),
     };
   }
 }

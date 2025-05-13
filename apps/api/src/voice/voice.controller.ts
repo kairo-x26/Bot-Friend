@@ -24,20 +24,47 @@ export class VoiceController {
   @Post('session')
   @HttpCode(201)
   async session(@CurrentUser() user: AuthUser): Promise<VoiceSession> {
-    if (!this.config.env.FEATURE_VOICE) throw new ApiError(ErrorCode.FeatureDisabled, 'Voice chat isn’t available yet');
-    if (user.provider === 'guest') throw ApiError.forbidden('Create a free account to use voice chat.');
+    if (!this.config.env.FEATURE_VOICE)
+      throw new ApiError(ErrorCode.FeatureDisabled, 'Voice chat isn’t available yet');
+    if (user.provider === 'guest')
+      throw ApiError.forbidden('Create a free account to use voice chat.');
     await this.quota.checkMessageRate(user.id);
     // A voice session counts as one message against the daily allowance.
     await this.quota.consumeMessage(user);
 
     const prefs = await this.users.preferences(user.id);
-    const instructions = [SAFETY_RULES, PERSONA, STYLE_CONTRACTS[prefs.comedyStyle], ENERGY_NOTES[prefs.energy], VOICE_NOTES].join('\n\n');
-    const { OPENAI_REALTIME_MODEL: model, OPENAI_REALTIME_VOICE: voice, VOICE_SESSION_SECONDS: ttlSeconds } = this.config.env;
+    const instructions = [
+      SAFETY_RULES,
+      PERSONA,
+      STYLE_CONTRACTS[prefs.comedyStyle],
+      ENERGY_NOTES[prefs.energy],
+      VOICE_NOTES,
+    ].join('\n\n');
+    const {
+      OPENAI_REALTIME_MODEL: model,
+      OPENAI_REALTIME_VOICE: voice,
+      VOICE_SESSION_SECONDS: ttlSeconds,
+    } = this.config.env;
     try {
-      const secret = await this.realtime.createClientSecret({ instructions, model, voice, ttlSeconds, safetyIdentifier: user.id });
-      return { clientSecret: secret.value, expiresAt: secret.expiresAt.toISOString(), model, voice };
+      const secret = await this.realtime.createClientSecret({
+        instructions,
+        model,
+        voice,
+        ttlSeconds,
+        safetyIdentifier: user.id,
+      });
+      return {
+        clientSecret: secret.value,
+        expiresAt: secret.expiresAt.toISOString(),
+        model,
+        voice,
+      };
     } catch (err) {
-      if (err instanceof ProviderError) throw new ApiError(ErrorCode.ProviderUnavailable, 'Voice is having a moment. Try again shortly.');
+      if (err instanceof ProviderError)
+        throw new ApiError(
+          ErrorCode.ProviderUnavailable,
+          'Voice is having a moment. Try again shortly.',
+        );
       throw err;
     }
   }

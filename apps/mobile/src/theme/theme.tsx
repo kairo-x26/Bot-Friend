@@ -33,7 +33,13 @@ export interface ThemeSettings {
   largeText: boolean;
 }
 
-export function ThemeProvider({ settings, children }: { settings: ThemeSettings; children: ReactNode }) {
+export function ThemeProvider({
+  settings,
+  children,
+}: {
+  settings: ThemeSettings;
+  children: ReactNode;
+}) {
   const system = useColorScheme();
   const osReducedMotion = useOsReducedMotion();
   const dark = settings.theme === 'system' ? system === 'dark' : settings.theme === 'dark';

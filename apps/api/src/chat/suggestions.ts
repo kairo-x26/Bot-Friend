@@ -38,7 +38,11 @@ export function suggestFollowUps(input: SuggestionInput): string[] {
   const text = input.userText.toLowerCase();
   const chips: string[] = [];
   if (/\b(tired|motivat\w*|to-?dos?|deadlines?|lazy|procrastinat\w*|work)\b/.test(text)) {
-    chips.push(input.roastOptIn ? '😂 Roast my excuses' : '😂 Laugh about it', '✨ Motivate me', '🎮 Distract me');
+    chips.push(
+      input.roastOptIn ? '😂 Roast my excuses' : '😂 Laugh about it',
+      '✨ Motivate me',
+      '🎮 Distract me',
+    );
   } else if (/\b(bored|nothing to do)\b/.test(text)) {
     chips.push('🎮 Play a game', '🤔 Would you rather', '📖 Tell me a story');
   } else if (/\b(jokes?|puns?|laugh\w*)\b/.test(text)) {

@@ -20,7 +20,13 @@ const MESSAGES = num('messages', 3);
 const ABORT_RATE = num('abort', 0.1);
 const RAMP_MS = num('ramp', 2000);
 
-const PROMPTS = ['tell me a joke', 'my day was weird', 'I need motivation', 'tell me a funny story', 'what should I eat'];
+const PROMPTS = [
+  'tell me a joke',
+  'my day was weird',
+  'I need motivation',
+  'tell me a funny story',
+  'what should I eat',
+];
 
 interface Sample {
   ok: boolean;
@@ -34,13 +40,21 @@ interface Sample {
 async function json(method: string, path: string, body?: unknown, token?: string) {
   const res = await fetch(`${BASE}${path}`, {
     method,
-    headers: { 'content-type': 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) },
+    headers: {
+      'content-type': 'application/json',
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+    },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   return { status: res.status, body: (await res.json().catch(() => null)) as any };
 }
 
-async function send(token: string, convo: string, content: string, abort: boolean): Promise<Sample> {
+async function send(
+  token: string,
+  convo: string,
+  content: string,
+  abort: boolean,
+): Promise<Sample> {
   const started = performance.now();
   const ctrl = new AbortController();
   let firstDeltaMs: number | null = null;
@@ -52,7 +66,15 @@ async function send(token: string, convo: string, content: string, abort: boolea
       headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
       body: JSON.stringify({ content, idempotencyKey: randomUUID() }),
     });
-    if (!res.ok || !res.body) return { ok: false, status: res.status, firstDeltaMs, totalMs: performance.now() - started, aborted: false, terminal };
+    if (!res.ok || !res.body)
+      return {
+        ok: false,
+        status: res.status,
+        firstDeltaMs,
+        totalMs: performance.now() - started,
+        aborted: false,
+        terminal,
+      };
     const parser = new SseParser();
     const decoder = new TextDecoder();
     for await (const chunk of res.body) {
@@ -61,14 +83,33 @@ async function send(token: string, convo: string, content: string, abort: boolea
           firstDeltaMs = performance.now() - started;
           if (abort) ctrl.abort();
         }
-        if (e.type === 'message.completed' || e.type === 'message.failed' || e.type === 'message.blocked') terminal = e.type;
+        if (
+          e.type === 'message.completed' ||
+          e.type === 'message.failed' ||
+          e.type === 'message.blocked'
+        )
+          terminal = e.type;
       }
     }
-    return { ok: terminal === 'message.completed' || terminal === 'message.blocked', status: res.status, firstDeltaMs, totalMs: performance.now() - started, aborted: false, terminal };
+    return {
+      ok: terminal === 'message.completed' || terminal === 'message.blocked',
+      status: res.status,
+      firstDeltaMs,
+      totalMs: performance.now() - started,
+      aborted: false,
+      terminal,
+    };
   } catch (err) {
     const aborted = ctrl.signal.aborted;
     const code = (err as Error & { cause?: { code?: string } }).cause?.code;
-    return { ok: aborted, status: 0, firstDeltaMs, totalMs: performance.now() - started, aborted, terminal: aborted ? terminal : `network:${code ?? 'unknown'}` };
+    return {
+      ok: aborted,
+      status: 0,
+      firstDeltaMs,
+      totalMs: performance.now() - started,
+      aborted,
+      terminal: aborted ? terminal : `network:${code ?? 'unknown'}`,
+    };
   }
 }
 
@@ -77,18 +118,48 @@ async function virtualUser(i: number): Promise<Sample[]> {
   try {
     return await session(i);
   } catch (err) {
-    return [{ ok: false, status: 0, firstDeltaMs: null, totalMs: 0, aborted: false, terminal: `setup_error:${(err as Error & { cause?: { code?: string } }).cause?.code ?? 'unknown'}` }];
+    return [
+      {
+        ok: false,
+        status: 0,
+        firstDeltaMs: null,
+        totalMs: 0,
+        aborted: false,
+        terminal: `setup_error:${(err as Error & { cause?: { code?: string } }).cause?.code ?? 'unknown'}`,
+      },
+    ];
   }
 }
 
 async function session(i: number): Promise<Sample[]> {
-  const login = await json('POST', '/v1/auth/session', { provider: 'dev', email: `load-${i}-${randomUUID().slice(0, 6)}@load.local`, ageConfirmed: true });
-  if (login.status !== 200) return [{ ok: false, status: login.status, firstDeltaMs: null, totalMs: 0, aborted: false, terminal: 'login_failed' }];
+  const login = await json('POST', '/v1/auth/session', {
+    provider: 'dev',
+    email: `load-${i}-${randomUUID().slice(0, 6)}@load.local`,
+    ageConfirmed: true,
+  });
+  if (login.status !== 200)
+    return [
+      {
+        ok: false,
+        status: login.status,
+        firstDeltaMs: null,
+        totalMs: 0,
+        aborted: false,
+        terminal: 'login_failed',
+      },
+    ];
   const token = login.body.accessToken as string;
   const convo = await json('POST', '/v1/conversations', {}, token);
   const samples: Sample[] = [];
   for (let m = 0; m < MESSAGES; m++) {
-    samples.push(await send(token, convo.body.id, PROMPTS[(i + m) % PROMPTS.length]!, Math.random() < ABORT_RATE));
+    samples.push(
+      await send(
+        token,
+        convo.body.id,
+        PROMPTS[(i + m) % PROMPTS.length]!,
+        Math.random() < ABORT_RATE,
+      ),
+    );
   }
   return samples;
 }
@@ -100,14 +171,22 @@ function pct(values: number[], p: number) {
 }
 
 const t0 = performance.now();
-console.log(`Load test: ${USERS} users x ${MESSAGES} messages against ${BASE} (abort ${ABORT_RATE * 100}%)`);
+console.log(
+  `Load test: ${USERS} users x ${MESSAGES} messages against ${BASE} (abort ${ABORT_RATE * 100}%)`,
+);
 const all = (await Promise.all(Array.from({ length: USERS }, (_, i) => virtualUser(i)))).flat();
 const wall = (performance.now() - t0) / 1000;
 const completed = all.filter((s) => !s.aborted);
 const firsts = completed.map((s) => s.firstDeltaMs).filter((v): v is number => v !== null);
 const totals = completed.filter((s) => s.ok).map((s) => s.totalMs);
 const errors = completed.filter((s) => !s.ok);
-const byStatus = errors.reduce<Record<string, number>>((acc, s) => ((acc[s.terminal ?? String(s.status)] = (acc[s.terminal ?? String(s.status)] ?? 0) + 1), acc), {});
+const byStatus = errors.reduce<Record<string, number>>(
+  (acc, s) => (
+    (acc[s.terminal ?? String(s.status)] = (acc[s.terminal ?? String(s.status)] ?? 0) + 1),
+    acc
+  ),
+  {},
+);
 
 console.log(`
 requests         ${all.length} in ${wall.toFixed(1)}s (${(all.length / wall).toFixed(1)}/s)

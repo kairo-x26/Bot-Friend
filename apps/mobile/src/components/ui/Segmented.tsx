@@ -48,7 +48,11 @@ export function Segmented<T extends string>({
               borderColor: t.colors.border,
             }}
           >
-            <Text variant="callout" weight={active ? 'semibold' : 'medium'} tone={active ? 'default' : 'muted'}>
+            <Text
+              variant="callout"
+              weight={active ? 'semibold' : 'medium'}
+              tone={active ? 'default' : 'muted'}
+            >
               {o.label}
             </Text>
           </Tactile>

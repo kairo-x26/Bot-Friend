@@ -13,7 +13,14 @@ export interface ComposerProps {
   autoFocus?: boolean;
 }
 
-export function Composer({ onSend, onStop, streaming, disabled, placeholder = 'Say something…', autoFocus }: ComposerProps) {
+export function Composer({
+  onSend,
+  onStop,
+  streaming,
+  disabled,
+  placeholder = 'Say something…',
+  autoFocus,
+}: ComposerProps) {
   const t = useTheme();
   const [text, setText] = useState('');
   const canSend = text.trim().length > 0 && !disabled;
@@ -67,9 +74,22 @@ export function Composer({ onSend, onStop, streaming, disabled, placeholder = 'S
         }}
       />
       {streaming ? (
-        <IconButton icon="stop" label="Stop reply" tone="soft" onPress={onStop} testID="composer-stop" />
+        <IconButton
+          icon="stop"
+          label="Stop reply"
+          tone="soft"
+          onPress={onStop}
+          testID="composer-stop"
+        />
       ) : (
-        <IconButton icon="send" label="Send message" tone="primary" onPress={submit} disabled={!canSend} testID="composer-send" />
+        <IconButton
+          icon="send"
+          label="Send message"
+          tone="primary"
+          onPress={submit}
+          disabled={!canSend}
+          testID="composer-send"
+        />
       )}
     </View>
   );

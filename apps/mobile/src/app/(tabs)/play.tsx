@@ -42,7 +42,11 @@ export default function Play() {
   }
 
   return (
-    <Screen title="Play" subtitle="Quick games for when you need a laugh." headerRight={<Mascot size={64} mood="laughing" color={prefs.mascotColor} interactive />}>
+    <Screen
+      title="Play"
+      subtitle="Quick games for when you need a laugh."
+      headerRight={<Mascot size={64} mood="laughing" color={prefs.mascotColor} interactive />}
+    >
       {error ? <Text tone="danger">{error}</Text> : null}
       <View style={{ gap: t.space[4] }}>
         {ORDER.map((id) => {
@@ -56,15 +60,42 @@ export default function Play() {
               accessibilityLabel={`${game.title}. ${game.description}${locked ? ' Needs roasts turned on.' : ''}`}
               squish={0.97}
               haptic="medium"
-              style={{ flexDirection: 'row', borderRadius: t.radius.card, overflow: 'hidden', backgroundColor: t.colors.surface, minHeight: 104 }}
+              style={{
+                flexDirection: 'row',
+                borderRadius: t.radius.card,
+                overflow: 'hidden',
+                backgroundColor: t.colors.surface,
+                minHeight: 104,
+              }}
             >
-              <View style={{ width: 88, backgroundColor: stub[id], alignItems: 'center', justifyContent: 'center' }}>
+              <View
+                style={{
+                  width: 88,
+                  backgroundColor: stub[id],
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
                 <Text style={{ fontSize: 36, lineHeight: 44 }}>{game.emoji}</Text>
               </View>
               {/* perforation between stub and body */}
-              <View style={{ width: 2, justifyContent: 'space-evenly', backgroundColor: t.colors.surface }}>
+              <View
+                style={{
+                  width: 2,
+                  justifyContent: 'space-evenly',
+                  backgroundColor: t.colors.surface,
+                }}
+              >
                 {Array.from({ length: 6 }, (_, i) => (
-                  <View key={i} style={{ width: 2, height: 6, borderRadius: 1, backgroundColor: t.colors.border }} />
+                  <View
+                    key={i}
+                    style={{
+                      width: 2,
+                      height: 6,
+                      borderRadius: 1,
+                      backgroundColor: t.colors.border,
+                    }}
+                  />
                 ))}
               </View>
               <View style={{ flex: 1, padding: t.space[4], justifyContent: 'center', gap: 4 }}>
@@ -91,9 +122,13 @@ export default function Play() {
       <Sheet visible={roastSheet} onClose={() => setRoastSheet(false)} title="Before the roast">
         <View style={{ gap: t.space[4] }}>
           <Text tone="muted">
-            Roasts poke fun at habits and choices, never at who you are. Pick anything that’s off-limits and Bot-Friend will steer clear. Say “stop” at any point and it stops.
+            Roasts poke fun at habits and choices, never at who you are. Pick anything that’s
+            off-limits and Bot-Friend will steer clear. Say “stop” at any point and it stops.
           </Text>
-          <BoundaryPicker value={prefs.humorBoundaries} onChange={(humorBoundaries) => updatePrefs.mutate({ humorBoundaries })} />
+          <BoundaryPicker
+            value={prefs.humorBoundaries}
+            onChange={(humorBoundaries) => updatePrefs.mutate({ humorBoundaries })}
+          />
           <Button
             label="Turn on roasts and play"
             testID="roast-confirm"

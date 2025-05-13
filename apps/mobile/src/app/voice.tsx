@@ -33,7 +33,9 @@ const MOOD: Record<VoiceState, MascotMood> = {
 export default function VoiceScreen() {
   const prefs = usePrefs((s) => s.prefs);
   return (
-    <ThemeProvider settings={{ theme: 'dark', reducedMotion: prefs.reducedMotion, largeText: prefs.largeText }}>
+    <ThemeProvider
+      settings={{ theme: 'dark', reducedMotion: prefs.reducedMotion, largeText: prefs.largeText }}
+    >
       <Voice />
     </ThemeProvider>
   );
@@ -87,11 +89,34 @@ function Voice() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: t.colors.background, paddingTop: insets.top + t.space[2], paddingBottom: insets.bottom + t.space[6] }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: t.space[4] }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: t.colors.background,
+        paddingTop: insets.top + t.space[2],
+        paddingBottom: insets.bottom + t.space[6],
+      }}
+    >
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingHorizontal: t.space[4],
+        }}
+      >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.space[2] }}>
           {state !== 'error' && state !== 'ended' ? (
-            <View accessible accessibilityLabel={muted ? 'Microphone muted' : 'Microphone on'} style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: muted ? t.colors.textMuted : '#FF6B6B' }} />
+            <View
+              accessible
+              accessibilityLabel={muted ? 'Microphone muted' : 'Microphone on'}
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: 5,
+                backgroundColor: muted ? t.colors.textMuted : '#FF6B6B',
+              }}
+            />
           ) : null}
           <Text variant="caption" tone="muted">
             {muted ? 'Mic muted' : state === 'error' || state === 'ended' ? '' : 'Mic on'}
@@ -100,7 +125,15 @@ function Voice() {
         <IconButton icon="close" label="End voice chat" onPress={end} />
       </View>
 
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: t.space[6], paddingHorizontal: t.space[6] }}>
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: t.space[6],
+          paddingHorizontal: t.space[6],
+        }}
+      >
         <Mascot size={160} mood={MOOD[state]} color={color} />
         <Waveform state={state} />
         <Text variant="title" align="center" accessibilityLiveRegion="polite">

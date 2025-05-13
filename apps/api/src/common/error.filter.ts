@@ -47,12 +47,20 @@ export class ErrorFilter implements ExceptionFilter {
       }
     } else if (exception instanceof HttpException) {
       status = exception.getStatus();
-      const code = HTTP_TO_CODE[status] ?? (status >= 500 ? ErrorCode.Internal : ErrorCode.ValidationFailed);
+      const code =
+        HTTP_TO_CODE[status] ?? (status >= 500 ? ErrorCode.Internal : ErrorCode.ValidationFailed);
       body = { error: { code, message: exception.message, requestId } };
     } else if (isFastifyError(exception)) {
       status = exception.statusCode;
-      const code = HTTP_TO_CODE[status] ?? (status >= 500 ? ErrorCode.Internal : ErrorCode.ValidationFailed);
-      body = { error: { code, message: status >= 500 ? 'Something went wrong' : exception.message, requestId } };
+      const code =
+        HTTP_TO_CODE[status] ?? (status >= 500 ? ErrorCode.Internal : ErrorCode.ValidationFailed);
+      body = {
+        error: {
+          code,
+          message: status >= 500 ? 'Something went wrong' : exception.message,
+          requestId,
+        },
+      };
     } else {
       this.logger.error({ err: exception, requestId }, 'Unhandled error');
       this.reporter?.capture(exception, { requestId, route: req.routeOptions?.url ?? 'unknown' });
@@ -68,5 +76,9 @@ export class ErrorFilter implements ExceptionFilter {
 }
 
 function isFastifyError(e: unknown): e is { statusCode: number; message: string } {
-  return typeof e === 'object' && e !== null && typeof (e as { statusCode?: unknown }).statusCode === 'number';
+  return (
+    typeof e === 'object' &&
+    e !== null &&
+    typeof (e as { statusCode?: unknown }).statusCode === 'number'
+  );
 }

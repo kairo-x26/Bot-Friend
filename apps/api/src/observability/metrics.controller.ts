@@ -19,7 +19,8 @@ export class MetricsController {
     if (token) {
       const given = Buffer.from(auth?.replace(/^Bearer /, '') ?? '');
       const want = Buffer.from(token);
-      if (given.length !== want.length || !timingSafeEqual(given, want)) throw ApiError.unauthenticated('Bad metrics token');
+      if (given.length !== want.length || !timingSafeEqual(given, want))
+        throw ApiError.unauthenticated('Bad metrics token');
     }
     void reply.header('content-type', registry.contentType).send(await registry.metrics());
   }

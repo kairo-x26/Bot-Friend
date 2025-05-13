@@ -28,11 +28,13 @@ export class OidcIdTokenVerifier implements IdTokenVerifier {
 
   constructor(
     private readonly config: AppConfig,
-    private readonly keySetFor: (url: string) => JWTVerifyGetKey = (url) => createRemoteJWKSet(new URL(url)),
+    private readonly keySetFor: (url: string) => JWTVerifyGetKey = (url) =>
+      createRemoteJWKSet(new URL(url)),
   ) {}
 
   async verify(provider: 'apple' | 'google', idToken: string): Promise<VerifiedIdentity> {
-    const audience = provider === 'apple' ? this.config.env.APPLE_CLIENT_IDS : this.config.env.GOOGLE_CLIENT_IDS;
+    const audience =
+      provider === 'apple' ? this.config.env.APPLE_CLIENT_IDS : this.config.env.GOOGLE_CLIENT_IDS;
     if (audience.length === 0) {
       throw new ApiError(ErrorCode.FeatureDisabled, `${provider} sign-in is not configured`);
     }

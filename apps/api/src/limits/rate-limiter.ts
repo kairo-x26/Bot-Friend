@@ -41,7 +41,12 @@ export class RedisRateLimitStore implements RateLimitStore {
 
   async increment(key: string, windowMs: number) {
     const redisKey = `rl:${key}`;
-    const results = await this.redis.multi().incr(redisKey).pexpire(redisKey, windowMs, 'NX').pttl(redisKey).exec();
+    const results = await this.redis
+      .multi()
+      .incr(redisKey)
+      .pexpire(redisKey, windowMs, 'NX')
+      .pttl(redisKey)
+      .exec();
     const count = Number(results?.[0]?.[1] ?? 1);
     const ttl = Number(results?.[2]?.[1] ?? windowMs);
     return { count, resetAt: Date.now() + (ttl > 0 ? ttl : windowMs) };

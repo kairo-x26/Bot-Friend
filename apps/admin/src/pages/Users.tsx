@@ -45,11 +45,19 @@ export function Users() {
       <div className="page-head">
         <div>
           <h1>Users</h1>
-          <p className="muted">Account status and activity counts. Chat content is never shown here.</p>
+          <p className="muted">
+            Account status and activity counts. Chat content is never shown here.
+          </p>
         </div>
       </div>
       <form onSubmit={lookup} className="filters" style={{ marginBottom: 24 }}>
-        <input aria-label="User id" placeholder="User id" value={input} onChange={(e) => setInput(e.target.value)} style={{ minWidth: 340 }} />
+        <input
+          aria-label="User id"
+          placeholder="User id"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          style={{ minWidth: 340 }}
+        />
         <button type="submit">Look up</button>
       </form>
       {id && !UUID.test(id) ? <div className="error">That doesn’t look like a user id.</div> : null}
@@ -61,7 +69,9 @@ export function Users() {
             <dl className="meta">
               <dt>Status</dt>
               <dd>
-                <span className={`pill ${u.status === 'active' ? 'actioned' : 'open'}`}>{u.status}</span>
+                <span className={`pill ${u.status === 'active' ? 'actioned' : 'open'}`}>
+                  {u.status}
+                </span>
               </dd>
               <dt>Role</dt>
               <dd>{u.role}</dd>
@@ -100,13 +110,22 @@ export function Users() {
                 Reason (logged)
                 <textarea value={reason} onChange={(e) => setReason(e.target.value)} />
               </label>
-              {action.isError ? <div className="error">{(action.error as Error).message}</div> : null}
+              {action.isError ? (
+                <div className="error">{(action.error as Error).message}</div>
+              ) : null}
               {u.status === 'suspended' ? (
-                <button disabled={reason.trim().length < 3 || action.isPending} onClick={() => action.mutate({ kind: 'reinstate' })}>
+                <button
+                  disabled={reason.trim().length < 3 || action.isPending}
+                  onClick={() => action.mutate({ kind: 'reinstate' })}
+                >
                   Reinstate
                 </button>
               ) : (
-                <button className="danger" disabled={reason.trim().length < 3 || action.isPending} onClick={() => action.mutate({ kind: 'suspend' })}>
+                <button
+                  className="danger"
+                  disabled={reason.trim().length < 3 || action.isPending}
+                  onClick={() => action.mutate({ kind: 'suspend' })}
+                >
                   Suspend account
                 </button>
               )}
@@ -115,7 +134,9 @@ export function Users() {
                 <select
                   value={u.role}
                   disabled={action.isPending || u.provider === 'guest'}
-                  onChange={(e) => action.mutate({ kind: 'role', role: e.target.value as UserRole })}
+                  onChange={(e) =>
+                    action.mutate({ kind: 'role', role: e.target.value as UserRole })
+                  }
                 >
                   <option value="user">User</option>
                   <option value="moderator">Moderator</option>

@@ -19,13 +19,26 @@ export function Sheet({
   const t = useTheme();
   const insets = useSafeAreaInsets();
   return (
-    <Modal visible={visible} transparent animationType={t.reducedMotion ? 'none' : 'slide'} onRequestClose={onClose} statusBarTranslucent>
+    <Modal
+      visible={visible}
+      transparent
+      animationType={t.reducedMotion ? 'none' : 'slide'}
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
       <View style={{ flex: 1, justifyContent: 'flex-end' }}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Close"
           onPress={onClose}
-          style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: t.colors.scrim }}
+          style={{
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: t.colors.scrim,
+          }}
         />
         <View
           accessibilityViewIsModal
@@ -39,7 +52,16 @@ export function Sheet({
             maxHeight: '85%',
           }}
         >
-          <View style={{ alignSelf: 'center', width: 40, height: 5, borderRadius: 3, backgroundColor: t.colors.border, marginBottom: t.space[4] }} />
+          <View
+            style={{
+              alignSelf: 'center',
+              width: 40,
+              height: 5,
+              borderRadius: 3,
+              backgroundColor: t.colors.border,
+              marginBottom: t.space[4],
+            }}
+          />
           <Text variant="heading" accessibilityRole="header" style={{ marginBottom: t.space[3] }}>
             {title}
           </Text>

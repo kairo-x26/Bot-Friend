@@ -1,7 +1,14 @@
 import type { Conversation } from '@bot-friend/shared';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Composer } from '@/components/chat/Composer';
 import { Mascot } from '@/components/mascot/Mascot';
@@ -38,7 +45,10 @@ export default function Home() {
     setError(null);
     try {
       const convo = await create.mutateAsync({ mode: opts.mode ?? 'chat' });
-      router.push({ pathname: '/chat/[id]', params: { id: convo.id, ...(opts.message ? { initial: opts.message } : {}) } });
+      router.push({
+        pathname: '/chat/[id]',
+        params: { id: convo.id, ...(opts.message ? { initial: opts.message } : {}) },
+      });
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : 'Couldn’t start a chat. Try again.');
     }
@@ -46,15 +56,36 @@ export default function Home() {
 
   const header = (
     <View style={{ gap: t.space[5], paddingBottom: t.space[4] }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.space[4], paddingTop: t.space[4] }}>
-        <Mascot size={104} mood={STYLE_MOOD[prefs.comedyStyle]} color={prefs.mascotColor} interactive testID="home-mascot" />
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: t.space[4],
+          paddingTop: t.space[4],
+        }}
+      >
+        <Mascot
+          size={104}
+          mood={STYLE_MOOD[prefs.comedyStyle]}
+          color={prefs.mascotColor}
+          interactive
+          testID="home-mascot"
+        />
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text tone="muted" weight="medium" style={{ flex: 1 }}>
               {greeting()}
               {user?.displayName ? `, ${user.displayName}` : ''}
             </Text>
-            {items.length > 0 ? <IconButton icon="search" label="Search chats" size={40} onPress={() => router.push('/search')} testID="home-search" /> : null}
+            {items.length > 0 ? (
+              <IconButton
+                icon="search"
+                label="Search chats"
+                size={40}
+                onPress={() => router.push('/search')}
+                testID="home-search"
+              />
+            ) : null}
           </View>
           <Text variant="title" accessibilityRole="header" style={{ marginTop: 2 }}>
             What are we getting into?
@@ -62,38 +93,71 @@ export default function Home() {
         </View>
       </View>
 
-      <Composer onSend={(message) => start({ message })} disabled={create.isPending} placeholder="Tell me anything…" />
+      <Composer
+        onSend={(message) => start({ message })}
+        disabled={create.isPending}
+        placeholder="Tell me anything…"
+      />
       {error ? (
         <Text tone="danger" accessibilityLiveRegion="polite">
           {error}
         </Text>
       ) : null}
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: t.space[2], paddingRight: t.space[5] }} style={{ marginHorizontal: -t.space[5], paddingLeft: t.space[5] }}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ gap: t.space[2], paddingRight: t.space[5] }}
+        style={{ marginHorizontal: -t.space[5], paddingLeft: t.space[5] }}
+      >
         {QUICK.map((q, i) => (
-          <Chip key={q.label} label={q.label} tone={i % 2 ? 'calm' : 'warm'} onPress={() => start(q)} />
+          <Chip
+            key={q.label}
+            label={q.label}
+            tone={i % 2 ? 'calm' : 'warm'}
+            onPress={() => start(q)}
+          />
         ))}
       </ScrollView>
 
-      <Text variant="subheading" display weight="semibold" accessibilityRole="header" style={{ marginTop: t.space[3] }}>
+      <Text
+        variant="subheading"
+        display
+        weight="semibold"
+        accessibilityRole="header"
+        style={{ marginTop: t.space[3] }}
+      >
         Recent chats
       </Text>
     </View>
   );
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: t.colors.background }}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={{ flex: 1, backgroundColor: t.colors.background }}
+    >
       <Starfield height={220} />
       <FlatList
         data={items}
         keyExtractor={(c) => c.id}
         ListHeaderComponent={header}
-        contentContainerStyle={{ paddingTop: insets.top, paddingHorizontal: t.space[5], paddingBottom: t.space[10] }}
+        contentContainerStyle={{
+          paddingTop: insets.top,
+          paddingHorizontal: t.space[5],
+          paddingBottom: t.space[10],
+        }}
         keyboardShouldPersistTaps="handled"
-        onEndReached={() => conversations.hasNextPage && !conversations.isFetchingNextPage && conversations.fetchNextPage()}
+        onEndReached={() =>
+          conversations.hasNextPage &&
+          !conversations.isFetchingNextPage &&
+          conversations.fetchNextPage()
+        }
         onRefresh={() => conversations.refetch()}
         refreshing={conversations.isRefetching}
-        ItemSeparatorComponent={() => <View style={{ height: 1, backgroundColor: t.colors.border, opacity: 0.6 }} />}
+        ItemSeparatorComponent={() => (
+          <View style={{ height: 1, backgroundColor: t.colors.border, opacity: 0.6 }} />
+        )}
         ListEmptyComponent={
           conversations.isLoading ? (
             <ActivityIndicator color={t.colors.primary} style={{ marginTop: t.space[6] }} />
@@ -103,7 +167,11 @@ export default function Home() {
             <Text tone="muted">No chats yet. Say hi up there and I’ll take it from here.</Text>
           )
         }
-        ListFooterComponent={conversations.isFetchingNextPage ? <ActivityIndicator color={t.colors.primary} style={{ marginTop: t.space[4] }} /> : undefined}
+        ListFooterComponent={
+          conversations.isFetchingNextPage ? (
+            <ActivityIndicator color={t.colors.primary} style={{ marginTop: t.space[4] }} />
+          ) : undefined
+        }
         renderItem={({ item }) => <ConversationRow convo={item} />}
       />
     </KeyboardAvoidingView>
@@ -127,9 +195,23 @@ function ConversationRow({ convo }: { convo: Conversation }) {
       accessibilityLabel={`${convo.title}. ${convo.lastMessagePreview ?? ''}`}
       squish={0.99}
       haptic={false}
-      style={{ flexDirection: 'row', gap: t.space[3], paddingVertical: t.space[3], alignItems: 'center' }}
+      style={{
+        flexDirection: 'row',
+        gap: t.space[3],
+        paddingVertical: t.space[3],
+        alignItems: 'center',
+      }}
     >
-      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: t.colors.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+      <View
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 20,
+          backgroundColor: t.colors.primarySoft,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <Text variant="subheading">{MODE_EMOJI[convo.mode]}</Text>
       </View>
       <View style={{ flex: 1 }}>

@@ -45,10 +45,18 @@ async function main() {
   if (args.includes('--offline')) cases = cases.filter((c) => !c.needsModel);
   const judge = process.env.OPENAI_API_KEY ? new Judge(process.env.OPENAI_API_KEY) : null;
 
-  console.log(`Running ${cases.length} cases against ${baseUrl}${judge ? ' with LLM judge' : ' (judge off: set OPENAI_API_KEY to score humor)'}`);
-  const results = await runAll(baseUrl, cases, judge, Number(process.env.EVAL_CONCURRENCY ?? 4), (r) => {
-    process.stdout.write(r.passed ? '.' : r.critical ? 'X' : 'F');
-  });
+  console.log(
+    `Running ${cases.length} cases against ${baseUrl}${judge ? ' with LLM judge' : ' (judge off: set OPENAI_API_KEY to score humor)'}`,
+  );
+  const results = await runAll(
+    baseUrl,
+    cases,
+    judge,
+    Number(process.env.EVAL_CONCURRENCY ?? 4),
+    (r) => {
+      process.stdout.write(r.passed ? '.' : r.critical ? 'X' : 'F');
+    },
+  );
   process.stdout.write('\n');
   const summary = summarize(results);
 
@@ -59,24 +67,33 @@ async function main() {
 
   console.log('\nCategory        Pass rate   Mean Q');
   for (const [cat, s] of Object.entries(summary.byCategory)) {
-    console.log(`${cat.padEnd(16)}${`${s.passed}/${s.total}`.padEnd(8)}${(s.passRate * 100).toFixed(0).padStart(3)}%   ${s.meanQ ?? '—'}`);
+    console.log(
+      `${cat.padEnd(16)}${`${s.passed}/${s.total}`.padEnd(8)}${(s.passRate * 100).toFixed(0).padStart(3)}%   ${s.meanQ ?? '—'}`,
+    );
   }
-  console.log(`\nOverall ${summary.passed}/${summary.total}, p95 case time ${summary.p95LatencyMs}ms. Report: ${reportPath}`);
-  for (const r of results.filter((x) => !x.passed).slice(0, 25)) console.log(`  ${r.critical ? 'CRITICAL' : 'fail'} ${r.id}: ${r.failures.join('; ')}`);
+  console.log(
+    `\nOverall ${summary.passed}/${summary.total}, p95 case time ${summary.p95LatencyMs}ms. Report: ${reportPath}`,
+  );
+  for (const r of results.filter((x) => !x.passed).slice(0, 25))
+    console.log(`  ${r.critical ? 'CRITICAL' : 'fail'} ${r.id}: ${r.failures.join('; ')}`);
 
   let exitCode = 0;
   if (summary.criticalFailures.length) {
-    console.error(`\n${summary.criticalFailures.length} critical case(s) failed. Release gate: zero.`);
+    console.error(
+      `\n${summary.criticalFailures.length} critical case(s) failed. Release gate: zero.`,
+    );
     exitCode = 1;
   }
   const baselinePath = flag('baseline');
   if (baselinePath) {
     const baseline = JSON.parse(readFileSync(join(root, baselinePath), 'utf8')) as Summary;
     const regressions = compareToBaseline(summary, baseline);
-    for (const r of regressions) console.error(`Regression in ${r.category}: ${r.baseline} -> ${r.current}`);
+    for (const r of regressions)
+      console.error(`Regression in ${r.category}: ${r.baseline} -> ${r.current}`);
     if (regressions.length) exitCode = 1;
   }
-  if (args.includes('--write-baseline')) writeFileSync(join(root, 'reports', 'baseline.json'), JSON.stringify(summary, null, 2));
+  if (args.includes('--write-baseline'))
+    writeFileSync(join(root, 'reports', 'baseline.json'), JSON.stringify(summary, null, 2));
   process.exit(exitCode);
 }
 

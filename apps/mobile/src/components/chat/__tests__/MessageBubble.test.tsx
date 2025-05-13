@@ -22,7 +22,12 @@ describe('MessageBubble', () => {
 
   it('offers retry on a failed reply', async () => {
     const onRetry = jest.fn();
-    await renderWithTheme(<MessageBubble item={{ ...base, status: 'failed', error: 'Bot-Friend couldn’t answer', retryable: true }} onRetry={onRetry} />);
+    await renderWithTheme(
+      <MessageBubble
+        item={{ ...base, status: 'failed', error: 'Bot-Friend couldn’t answer', retryable: true }}
+        onRetry={onRetry}
+      />,
+    );
     expect(screen.getByText('Bot-Friend couldn’t answer')).toBeTruthy();
     await fireEvent.press(screen.getByText('Retry'));
     expect(onRetry).toHaveBeenCalled();
@@ -34,7 +39,16 @@ describe('MessageBubble', () => {
   });
 
   it('renders the support card with crisis options for safety replies', async () => {
-    await renderWithTheme(<MessageBubble item={{ ...base, status: 'blocked', supportResources: true, content: 'You deserve support.' }} />);
+    await renderWithTheme(
+      <MessageBubble
+        item={{
+          ...base,
+          status: 'blocked',
+          supportResources: true,
+          content: 'You deserve support.',
+        }}
+      />,
+    );
     expect(screen.getByText('You’re not alone')).toBeTruthy();
     expect(screen.getByLabelText('Call 988')).toBeTruthy();
   });

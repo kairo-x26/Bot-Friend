@@ -18,7 +18,11 @@ import {
   type ConversationRow,
   type MessageRow,
 } from '../db/schema.js';
-import { BLOCKED_OUTPUT_MESSAGE, SafetyService, type InputVerdict } from '../safety/safety.service.js';
+import {
+  BLOCKED_OUTPUT_MESSAGE,
+  SafetyService,
+  type InputVerdict,
+} from '../safety/safety.service.js';
 import { MemoryService } from '../memory/memory.service.js';
 import * as metrics from '../observability/metrics.js';
 import { advanceGame, effectiveMode, isFinalRound, readGameState } from '../games/game-engine.js';
@@ -57,13 +61,21 @@ export class ChatService {
     const [existing] = await this.db
       .select()
       .from(messages)
-      .where(and(eq(messages.conversationId, conversationId), eq(messages.idempotencyKey, body.idempotencyKey)))
+      .where(
+        and(
+          eq(messages.conversationId, conversationId),
+          eq(messages.idempotencyKey, body.idempotencyKey),
+        ),
+      )
       .limit(1);
 
     if (!existing) return { kind: 'generate', conversation, existingUserMessage: null };
 
     if (existing.content !== body.content) {
-      throw new ApiError(ErrorCode.IdempotencyMismatch, 'This idempotency key was already used for a different message');
+      throw new ApiError(
+        ErrorCode.IdempotencyMismatch,
+        'This idempotency key was already used for a different message',
+      );
     }
     const reply = await this.latestReply(existing.id);
     if (reply && (reply.status === 'completed' || reply.status === 'blocked')) {
@@ -106,7 +118,12 @@ export class ChatService {
         // Retry: drop earlier failed/cancelled attempts so the thread never shows duplicates.
         await tx
           .delete(messages)
-          .where(and(eq(messages.replyToId, userMessage.id), inArray(messages.status, ['failed', 'cancelled', 'streaming'])));
+          .where(
+            and(
+              eq(messages.replyToId, userMessage.id),
+              inArray(messages.status, ['failed', 'cancelled', 'streaming']),
+            ),
+          );
       } else {
         [userMessage] = await tx
           .insert(messages)
@@ -136,24 +153,39 @@ export class ChatService {
       return { userMessage: userMessage!, assistant: assistant! };
     });
 
-    sink.send({ type: 'message.started', userMessage: toMessageDto(userMessage), assistantMessageId: assistant.id, replay: false });
+    sink.send({
+      type: 'message.started',
+      userMessage: toMessageDto(userMessage),
+      assistantMessageId: assistant.id,
+      replay: false,
+    });
     if (!conversation.lastMessagePreview && !turn.existingUserMessage) {
       this.analytics.track('chat_started', userId, { mode: conversation.mode, style });
     }
 
     const span = trace.getTracer('bot-friend').startSpan('chat.reply', {
-      attributes: { 'bf.mode': conversation.mode, 'bf.style': style, 'bf.retry': Boolean(turn.existingUserMessage) },
+      attributes: {
+        'bf.mode': conversation.mode,
+        'bf.style': style,
+        'bf.retry': Boolean(turn.existingUserMessage),
+      },
     });
     let firstDeltaAt: number | null = null;
     let outcome = 'failed';
     const controller = this.inflight.start(assistant.id, userId);
-    const signal = AbortSignal.any([controller.signal, sink.closed, AbortSignal.timeout(this.config.env.AI_TIMEOUT_MS)]);
+    const signal = AbortSignal.any([
+      controller.signal,
+      sink.closed,
+      AbortSignal.timeout(this.config.env.AI_TIMEOUT_MS),
+    ]);
     const startedAt = Date.now();
     let text = '';
     let seq = 0;
 
     try {
-      const history = (await this.conversations.history(conversation.id, this.config.env.AI_HISTORY_MESSAGES + 1))
+      const history = (
+        await this.conversations.history(conversation.id, this.config.env.AI_HISTORY_MESSAGES + 1)
+      )
         .filter((m) => m.id !== userMessage.id)
         .map<PromptMessage>((m) => ({ role: m.role as PromptMessage['role'], content: m.content }));
 
@@ -171,7 +203,10 @@ export class ChatService {
           serious,
           humorIntent: serious ? null : detectHumorIntent(body.content),
         },
-        { maxMessages: this.config.env.AI_HISTORY_MESSAGES, maxChars: this.config.env.AI_HISTORY_CHAR_BUDGET },
+        {
+          maxMessages: this.config.env.AI_HISTORY_MESSAGES,
+          maxChars: this.config.env.AI_HISTORY_CHAR_BUDGET,
+        },
       );
 
       const guard = this.safety.outputGuard();
@@ -199,7 +234,12 @@ export class ChatService {
               firstDeltaAt = Date.now();
               metrics.replyFirstToken.observe((firstDeltaAt - startedAt) / 1000);
             }
-            sink.send({ type: 'message.delta', assistantMessageId: assistant.id, seq: seq++, text: res.release });
+            sink.send({
+              type: 'message.delta',
+              assistantMessageId: assistant.id,
+              seq: seq++,
+              text: res.release,
+            });
           }
         } else {
           usage = chunk;
@@ -208,10 +248,21 @@ export class ChatService {
       if (!guardBlocked && !signal.aborted) {
         const rest = guard.flush();
         if ('blocked' in rest) guardBlocked = true;
-        else if (rest.release) sink.send({ type: 'message.delta', assistantMessageId: assistant.id, seq: seq++, text: rest.release });
+        else if (rest.release)
+          sink.send({
+            type: 'message.delta',
+            assistantMessageId: assistant.id,
+            seq: seq++,
+            text: rest.release,
+          });
       }
 
-      span.setAttributes({ 'bf.model': usage.modelId, 'bf.prompt_version': prompt.promptVersion, 'bf.tokens.in': usage.inputTokens, 'bf.tokens.out': usage.outputTokens });
+      span.setAttributes({
+        'bf.model': usage.modelId,
+        'bf.prompt_version': prompt.promptVersion,
+        'bf.tokens.in': usage.inputTokens,
+        'bf.tokens.out': usage.outputTokens,
+      });
       metrics.tokens.inc({ direction: 'in', model: usage.modelId }, usage.inputTokens);
       metrics.tokens.inc({ direction: 'out', model: usage.modelId }, usage.outputTokens);
       metrics.costMicros.inc(this.costMicros(usage.inputTokens, usage.outputTokens));
@@ -225,7 +276,12 @@ export class ChatService {
       if (!guardBlocked && !content) throw new ProviderError('Empty reply');
       const disclosed = this.safety.ensureAiDisclosure(body.content, content);
       if (disclosed !== content) {
-        sink.send({ type: 'message.delta', assistantMessageId: assistant.id, seq: seq++, text: disclosed.slice(content.length) });
+        sink.send({
+          type: 'message.delta',
+          assistantMessageId: assistant.id,
+          seq: seq++,
+          text: disclosed.slice(content.length),
+        });
         content = disclosed;
       }
 
@@ -237,7 +293,11 @@ export class ChatService {
       }
 
       const nextGame =
-        mode !== 'chat' && game ? (serious ? { ...game, active: false } : advanceGame(mode, game, content)) : null;
+        mode !== 'chat' && game
+          ? serious
+            ? { ...game, active: false }
+            : advanceGame(mode, game, content)
+          : null;
       const suggestions = suggestFollowUps({
         style,
         mode,
@@ -260,7 +320,9 @@ export class ChatService {
           })
           .where(eq(messages.id, assistant.id))
           .returning();
-        await tx.insert(usageRecords).values(this.usageRow(userId, conversation.id, assistant.id, usage, startedAt));
+        await tx
+          .insert(usageRecords)
+          .values(this.usageRow(userId, conversation.id, assistant.id, usage, startedAt));
         await tx
           .update(conversations)
           .set({
@@ -277,7 +339,8 @@ export class ChatService {
 
       sink.send({ type: 'message.completed', message: toMessageDto(completed) });
       outcome = 'completed';
-      if (!serious) void this.memory.suggestFrom(userId, prefs.memoryEnabled, body.content, userMessage.id);
+      if (!serious)
+        void this.memory.suggestFrom(userId, prefs.memoryEnabled, body.content, userMessage.id);
       this.analytics.track('reply_completed', userId, {
         mode,
         style,
@@ -298,13 +361,20 @@ export class ChatService {
       this.analytics.track('reply_failed', userId, { timedOut });
       await this.db
         .update(messages)
-        .set({ status: 'failed', content: '', errorCode: ErrorCode.ProviderUnavailable, updatedAt: new Date() })
+        .set({
+          status: 'failed',
+          content: '',
+          errorCode: ErrorCode.ProviderUnavailable,
+          updatedAt: new Date(),
+        })
         .where(eq(messages.id, assistant.id));
       sink.send({
         type: 'message.failed',
         assistantMessageId: assistant.id,
         code: ErrorCode.ProviderUnavailable,
-        message: timedOut ? 'Bot-Friend took too long to answer. Try again.' : 'Bot-Friend couldn’t answer just now. Try again.',
+        message: timedOut
+          ? 'Bot-Friend took too long to answer. Try again.'
+          : 'Bot-Friend couldn’t answer just now. Try again.',
         retryable: true,
       });
     } finally {
@@ -317,7 +387,11 @@ export class ChatService {
     }
   }
 
-  async cancel(userId: string, conversationId: string, assistantMessageId: string): Promise<{ cancelled: boolean }> {
+  async cancel(
+    userId: string,
+    conversationId: string,
+    assistantMessageId: string,
+  ): Promise<{ cancelled: boolean }> {
     await this.conversations.getOwned(userId, conversationId);
     return { cancelled: this.inflight.cancel(assistantMessageId, userId) };
   }
@@ -372,7 +446,12 @@ export class ChatService {
       }
       return { userMessage: userMessage!, assistant: assistant! };
     });
-    sink.send({ type: 'message.started', userMessage: toMessageDto(userMessage), assistantMessageId: assistant.id, replay: false });
+    sink.send({
+      type: 'message.started',
+      userMessage: toMessageDto(userMessage),
+      assistantMessageId: assistant.id,
+      replay: false,
+    });
     this.analytics.track('reply_blocked', userId, { stage: 'input', support });
     metrics.replies.inc({ outcome: support ? 'support' : 'blocked_input' });
     sink.send({
@@ -396,9 +475,17 @@ export class ChatService {
     await this.db.transaction(async (tx) => {
       await tx
         .update(messages)
-        .set({ status: 'blocked', content: BLOCKED_OUTPUT_MESSAGE, errorCode: 'output_blocked', modelId: usage.modelId, updatedAt: new Date() })
+        .set({
+          status: 'blocked',
+          content: BLOCKED_OUTPUT_MESSAGE,
+          errorCode: 'output_blocked',
+          modelId: usage.modelId,
+          updatedAt: new Date(),
+        })
         .where(eq(messages.id, assistant.id));
-      await tx.insert(usageRecords).values(this.usageRow(userId, conversation.id, assistant.id, usage, startedAt));
+      await tx
+        .insert(usageRecords)
+        .values(this.usageRow(userId, conversation.id, assistant.id, usage, startedAt));
       await tx.insert(auditEvents).values({
         actorId: null,
         action: 'safety.output_blocked',
@@ -438,7 +525,12 @@ export class ChatService {
 
   private replay(turn: Extract<PreparedTurn, { kind: 'replay' }>, sink: EventSink) {
     const { userMessage, reply } = turn;
-    sink.send({ type: 'message.started', userMessage: toMessageDto(userMessage), assistantMessageId: reply.id, replay: true });
+    sink.send({
+      type: 'message.started',
+      userMessage: toMessageDto(userMessage),
+      assistantMessageId: reply.id,
+      replay: true,
+    });
     if (reply.status === 'blocked') {
       sink.send({
         type: 'message.blocked',
@@ -454,10 +546,20 @@ export class ChatService {
   }
 
   /** A stopped reply keeps its partial text for reference but is never marked completed. */
-  private async finishCancelled(assistant: MessageRow, text: string, byUser: boolean, sink: EventSink) {
+  private async finishCancelled(
+    assistant: MessageRow,
+    text: string,
+    byUser: boolean,
+    sink: EventSink,
+  ) {
     await this.db
       .update(messages)
-      .set({ status: 'cancelled', content: text, errorCode: ErrorCode.Cancelled, updatedAt: new Date() })
+      .set({
+        status: 'cancelled',
+        content: text,
+        errorCode: ErrorCode.Cancelled,
+        updatedAt: new Date(),
+      })
       .where(eq(messages.id, assistant.id));
     sink.send({
       type: 'message.failed',
@@ -479,7 +581,12 @@ export class ChatService {
   }
 
   private autoTitle(conversation: ConversationRow, firstUserText: string) {
-    if (!conversation.titleIsAuto || conversation.mode !== 'chat' || conversation.title !== MODE_TITLES.chat) return {};
+    if (
+      !conversation.titleIsAuto ||
+      conversation.mode !== 'chat' ||
+      conversation.title !== MODE_TITLES.chat
+    )
+      return {};
     return { title: preview(firstUserText, 48) };
   }
 

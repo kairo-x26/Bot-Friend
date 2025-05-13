@@ -94,7 +94,11 @@ export function buildPrompt(ctx: PromptContext, budget: PromptBudget): BuiltProm
 }
 
 /** Keeps the most recent turns that fit both the message and character budgets. */
-export function trimHistory(history: PromptMessage[], budget: PromptBudget, reserved = 0): PromptMessage[] {
+export function trimHistory(
+  history: PromptMessage[],
+  budget: PromptBudget,
+  reserved = 0,
+): PromptMessage[] {
   const out: PromptMessage[] = [];
   let chars = reserved;
   for (let i = history.length - 1; i >= 0 && out.length < budget.maxMessages; i--) {
@@ -111,7 +115,8 @@ function sanitizeDataLine(text: string): string {
   return text.replace(/[<>]/g, '').replace(/\s+/g, ' ').slice(0, 200);
 }
 
-const JOKE_RE = /\b(tell|got|know|give|another)\b.{0,20}\bjokes?\b|^jokes?\b|\bmake me laugh\b|\bpun\b/i;
+const JOKE_RE =
+  /\b(tell|got|know|give|another)\b.{0,20}\bjokes?\b|^jokes?\b|\bmake me laugh\b|\bpun\b/i;
 const STORY_RE = /\b(funny|silly|short)?\s*stor(y|ies)\b|\btell me a tale\b/i;
 const ROAST_RE = /\broast\b/i;
 

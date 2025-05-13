@@ -36,11 +36,17 @@ export async function openDatabase(config: AppConfig): Promise<DatabaseHandle> {
     if (env.RUN_MIGRATIONS) {
       await migratePglite(db as never, { migrationsFolder: MIGRATIONS_DIR });
     }
-    logger.log(`Embedded database ready${env.DATABASE_EMBEDDED_DIR ? ` at ${env.DATABASE_EMBEDDED_DIR}` : ' (in-memory)'}`);
+    logger.log(
+      `Embedded database ready${env.DATABASE_EMBEDDED_DIR ? ` at ${env.DATABASE_EMBEDDED_DIR}` : ' (in-memory)'}`,
+    );
     return { db, close: () => client.close() };
   }
 
-  const pool = new pg.Pool({ connectionString: env.DATABASE_URL, max: 10, idleTimeoutMillis: 30_000 });
+  const pool = new pg.Pool({
+    connectionString: env.DATABASE_URL,
+    max: 10,
+    idleTimeoutMillis: 30_000,
+  });
   pool.on('error', (err) => logger.error(`Idle client error: ${err.message}`));
   const db = drizzlePg(pool, { schema });
   if (env.RUN_MIGRATIONS) {

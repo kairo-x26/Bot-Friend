@@ -14,7 +14,10 @@ import { UsageController } from './usage.controller.js';
       useFactory: async (config: AppConfig) => {
         if (!config.env.REDIS_URL) return new RateLimiter(new MemoryRateLimitStore());
         const { Redis } = await import('ioredis');
-        const redis = new Redis(config.env.REDIS_URL, { maxRetriesPerRequest: 1, enableOfflineQueue: false });
+        const redis = new Redis(config.env.REDIS_URL, {
+          maxRetriesPerRequest: 1,
+          enableOfflineQueue: false,
+        });
         redis.on('error', (err) => new Logger('Redis').warn(err.message));
         return new RateLimiter(new RedisRateLimitStore(redis));
       },

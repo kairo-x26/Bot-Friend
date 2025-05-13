@@ -12,14 +12,21 @@ export function expandMacros(text: string): string {
 
 export function expand(cases: EvalCase[]): ResolvedCase[] {
   return cases.flatMap((c) =>
-    (c.style === '*' ? comedyStyles.map((style) => ({ ...c, id: `${c.id}:${style}`, style })) : [{ ...c, style: c.style }]).map((x) => ({
+    (c.style === '*'
+      ? comedyStyles.map((style) => ({ ...c, id: `${c.id}:${style}`, style }))
+      : [{ ...c, style: c.style }]
+    ).map((x) => ({
       ...x,
       turns: x.turns.map(expandMacros),
     })),
   );
 }
 
-export async function runCase(baseUrl: string, c: ResolvedCase, judge: Judge | null): Promise<CaseResult> {
+export async function runCase(
+  baseUrl: string,
+  c: ResolvedCase,
+  judge: Judge | null,
+): Promise<CaseResult> {
   const api = new ApiClient(baseUrl);
   const failures: string[] = [];
   const turns: TurnResult[] = [];
@@ -29,10 +36,12 @@ export async function runCase(baseUrl: string, c: ResolvedCase, judge: Judge | n
     const prefs = { ...(c.setup?.preferences ?? {}), ...(c.style ? { comedyStyle: c.style } : {}) };
     if (c.setup?.memories?.length) Object.assign(prefs, { memoryEnabled: true });
     if (Object.keys(prefs).length) await api.request('PATCH', '/v1/me/preferences', prefs);
-    for (const m of c.setup?.memories ?? []) await api.request('POST', '/v1/memories', { content: m });
+    for (const m of c.setup?.memories ?? [])
+      await api.request('POST', '/v1/memories', { content: m });
 
     const convo = await api.request('POST', '/v1/conversations', { mode: c.mode ?? 'chat' });
-    if (convo.status !== 201) throw new Error(`create conversation: ${convo.status} ${JSON.stringify(convo.json)}`);
+    if (convo.status !== 201)
+      throw new Error(`create conversation: ${convo.status} ${JSON.stringify(convo.json)}`);
     const id = convo.json.id as string;
 
     if (c.scenario === 'cross_user') {
@@ -40,16 +49,22 @@ export async function runCase(baseUrl: string, c: ResolvedCase, judge: Judge | n
       const intruder = new ApiClient(baseUrl);
       await intruder.login('intruder');
       const peek = await intruder.request('GET', `/v1/conversations/${id}`);
-      if (peek.status !== 404) failures.push(`another account could read the conversation (HTTP ${peek.status})`);
+      if (peek.status !== 404)
+        failures.push(`another account could read the conversation (HTTP ${peek.status})`);
       const own = await intruder.request('POST', '/v1/conversations', {});
-      const probe = await intruder.send(own.json.id, c.turns[1] ?? 'What did the last user tell you?');
+      const probe = await intruder.send(
+        own.json.id,
+        c.turns[1] ?? 'What did the last user tell you?',
+      );
       turns.push(probe);
     } else if (c.scenario === 'duplicate_key') {
       const key = randomUUID();
       const first = await api.send(id, c.turns[0]!, { idempotencyKey: key });
       const again = await api.send(id, c.turns[0]!, { idempotencyKey: key });
       const msgs = await api.request('GET', `/v1/conversations/${id}/messages`);
-      const userCount = (msgs.json.items as Array<{ role: string }>).filter((m) => m.role === 'user').length;
+      const userCount = (msgs.json.items as Array<{ role: string }>).filter(
+        (m) => m.role === 'user',
+      ).length;
       if (userCount !== 1) failures.push(`duplicate key created ${userCount} user messages`);
       if (first.reply !== again.reply) failures.push('replay returned a different reply');
       turns.push(again);
@@ -60,8 +75,10 @@ export async function runCase(baseUrl: string, c: ResolvedCase, judge: Judge | n
       const retry = await api.send(id, c.turns[0]!, { idempotencyKey: key });
       const msgs = await api.request('GET', `/v1/conversations/${id}/messages`);
       const items = msgs.json.items as Array<{ role: string; status: string }>;
-      if (items.filter((m) => m.role === 'user').length !== 1) failures.push('retry after interruption duplicated the user message');
-      if (items.filter((m) => m.role === 'assistant' && m.status === 'completed').length !== 1) failures.push('expected exactly one completed reply after retry');
+      if (items.filter((m) => m.role === 'user').length !== 1)
+        failures.push('retry after interruption duplicated the user message');
+      if (items.filter((m) => m.role === 'assistant' && m.status === 'completed').length !== 1)
+        failures.push('expected exactly one completed reply after retry');
       turns.push(retry);
     } else {
       for (const text of c.turns) turns.push(await api.send(id, text));
@@ -99,7 +116,13 @@ export async function runCase(baseUrl: string, c: ResolvedCase, judge: Judge | n
 }
 
 /** Runs cases with bounded concurrency so a local API isn't flooded. */
-export async function runAll(baseUrl: string, cases: ResolvedCase[], judge: Judge | null, concurrency = 4, onDone?: (r: CaseResult) => void) {
+export async function runAll(
+  baseUrl: string,
+  cases: ResolvedCase[],
+  judge: Judge | null,
+  concurrency = 4,
+  onDone?: (r: CaseResult) => void,
+) {
   const results: CaseResult[] = [];
   let next = 0;
   await Promise.all(

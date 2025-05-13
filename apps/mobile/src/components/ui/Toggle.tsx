@@ -1,6 +1,12 @@
 import { useEffect } from 'react';
 import { View } from 'react-native';
-import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, {
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { useTheme } from '@/theme/theme';
 import { Tactile } from './Pressable';
 import { Text } from './Text';
@@ -22,7 +28,9 @@ export function Toggle({
   const t = useTheme();
   const progress = useSharedValue(value ? 1 : 0);
   useEffect(() => {
-    progress.value = t.reducedMotion ? withTiming(value ? 1 : 0, { duration: 0 }) : withSpring(value ? 1 : 0, t.motion.spring);
+    progress.value = t.reducedMotion
+      ? withTiming(value ? 1 : 0, { duration: 0 })
+      : withSpring(value ? 1 : 0, t.motion.spring);
   }, [value, t.reducedMotion, progress, t.motion.spring]);
 
   const track = useAnimatedStyle(() => ({
@@ -40,7 +48,12 @@ export function Toggle({
       onPress={() => onChange(!value)}
       haptic="select"
       squish={0.99}
-      style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: t.space[3], gap: t.space[4] }}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: t.space[3],
+        gap: t.space[4],
+      }}
     >
       <View style={{ flex: 1 }}>
         <Text weight="medium">{label}</Text>
@@ -53,7 +66,16 @@ export function Toggle({
       <Animated.View style={[{ width: 48, height: 28, borderRadius: 14, padding: 3 }, track]}>
         <Animated.View
           style={[
-            { width: 22, height: 22, borderRadius: 11, backgroundColor: '#FFFFFF', shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 2, shadowOffset: { width: 0, height: 1 } },
+            {
+              width: 22,
+              height: 22,
+              borderRadius: 11,
+              backgroundColor: '#FFFFFF',
+              shadowColor: '#000',
+              shadowOpacity: 0.15,
+              shadowRadius: 2,
+              shadowOffset: { width: 0, height: 1 },
+            },
             knob,
           ]}
         />

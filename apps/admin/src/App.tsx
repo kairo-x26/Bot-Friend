@@ -12,7 +12,11 @@ import { Users } from './pages/Users';
 
 function Shell() {
   const { me, signOut } = useAuth();
-  const metrics = useQuery({ queryKey: ['metrics'], queryFn: () => request<AdminMetrics>('GET', '/v1/admin/metrics'), refetchInterval: 60_000 });
+  const metrics = useQuery({
+    queryKey: ['metrics'],
+    queryFn: () => request<AdminMetrics>('GET', '/v1/admin/metrics'),
+    refetchInterval: 60_000,
+  });
   const open = metrics.data?.openReports.total ?? 0;
   return (
     <div className="shell">
@@ -25,7 +29,12 @@ function Shell() {
             Overview
           </NavLink>
           <NavLink to="/reports">
-            Reports {open > 0 ? <span className="count" aria-label={`${open} open`}>{open}</span> : null}
+            Reports{' '}
+            {open > 0 ? (
+              <span className="count" aria-label={`${open} open`}>
+                {open}
+              </span>
+            ) : null}
           </NavLink>
           <NavLink to="/users">Users</NavLink>
           <NavLink to="/audit">Audit log</NavLink>

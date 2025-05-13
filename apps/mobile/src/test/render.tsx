@@ -5,8 +5,15 @@ import { ThemeProvider } from '@/theme/theme';
 
 export async function renderWithTheme(ui: ReactElement, theme: 'light' | 'dark' = 'light') {
   return await render(
-    <SafeAreaProvider initialMetrics={{ frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 0, left: 0, right: 0, bottom: 0 } }}>
-      <ThemeProvider settings={{ theme, reducedMotion: true, largeText: false }}>{ui}</ThemeProvider>
+    <SafeAreaProvider
+      initialMetrics={{
+        frame: { x: 0, y: 0, width: 390, height: 844 },
+        insets: { top: 0, left: 0, right: 0, bottom: 0 },
+      }}
+    >
+      <ThemeProvider settings={{ theme, reducedMotion: true, largeText: false }}>
+        {ui}
+      </ThemeProvider>
     </SafeAreaProvider>,
   );
 }

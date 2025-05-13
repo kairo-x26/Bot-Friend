@@ -17,7 +17,10 @@ export class LogErrorReporter implements ErrorReporter {
  * Sentry-compatible reporting. Request bodies, cookies and auth headers are
  * stripped before anything leaves the process.
  */
-export async function createErrorReporter(dsn: string | undefined, environment: string): Promise<ErrorReporter> {
+export async function createErrorReporter(
+  dsn: string | undefined,
+  environment: string,
+): Promise<ErrorReporter> {
   if (!dsn) return new LogErrorReporter();
   const Sentry = await import('@sentry/node');
   Sentry.init({

@@ -35,7 +35,11 @@ export function Screen({
       {headerRight}
     </View>
   ) : null;
-  const padding = { paddingTop: insets.top + t.space[4], paddingHorizontal: t.space[5], paddingBottom: t.space[10] };
+  const padding = {
+    paddingTop: insets.top + t.space[4],
+    paddingHorizontal: t.space[5],
+    paddingBottom: t.space[10],
+  };
   if (!scroll) {
     return (
       <View style={[{ flex: 1, backgroundColor: t.colors.background }, padding]}>

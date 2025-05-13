@@ -55,12 +55,23 @@ export function Login() {
         {useToken ? (
           <label>
             Access token
-            <textarea value={token} onChange={(e) => setToken(e.target.value)} required autoComplete="off" />
+            <textarea
+              value={token}
+              onChange={(e) => setToken(e.target.value)}
+              required
+              autoComplete="off"
+            />
           </label>
         ) : (
           <label>
             Work email
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+            />
           </label>
         )}
         <button type="submit" disabled={busy}>

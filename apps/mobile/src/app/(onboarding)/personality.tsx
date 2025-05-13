@@ -17,7 +17,14 @@ export default function Personality() {
   const patch = usePrefs((s) => s.patch);
 
   return (
-    <View style={{ flex: 1, backgroundColor: t.colors.background, paddingTop: insets.top + t.space[2], paddingBottom: insets.bottom + t.space[5] }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: t.colors.background,
+        paddingTop: insets.top + t.space[2],
+        paddingBottom: insets.bottom + t.space[5],
+      }}
+    >
       <View style={{ paddingHorizontal: t.space[3] }}>
         <IconButton icon="back" label="Back" onPress={() => router.back()} />
       </View>
@@ -34,7 +41,11 @@ export default function Personality() {
           <Mascot size={72} mood={STYLE_MOOD[style]} color={color} />
         </View>
 
-        <View accessibilityRole="radiogroup" accessibilityLabel="Comedy style" style={{ marginTop: t.space[6], gap: t.space[2] }}>
+        <View
+          accessibilityRole="radiogroup"
+          accessibilityLabel="Comedy style"
+          style={{ marginTop: t.space[6], gap: t.space[2] }}
+        >
           {comedyStyles.map((s) => {
             const p = PERSONALITIES[s];
             const active = s === style;
@@ -71,7 +82,16 @@ export default function Personality() {
                     justifyContent: 'center',
                   }}
                 >
-                  {active ? <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: t.colors.primary }} /> : null}
+                  {active ? (
+                    <View
+                      style={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: 5,
+                        backgroundColor: t.colors.primary,
+                      }}
+                    />
+                  ) : null}
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text variant="subheading" display weight="semibold">
@@ -91,7 +111,12 @@ export default function Personality() {
         </View>
       </View>
       <View style={{ paddingHorizontal: t.space[6] }}>
-        <Button label="Sounds good" size="lg" onPress={() => router.push('/signin')} testID="personality-continue" />
+        <Button
+          label="Sounds good"
+          size="lg"
+          onPress={() => router.push('/signin')}
+          testID="personality-continue"
+        />
       </View>
     </View>
   );

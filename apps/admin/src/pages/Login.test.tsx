@@ -14,7 +14,9 @@ afterEach(() => {
 describe('Login', () => {
   it('signs in with dev email and stores the token for this tab only', async () => {
     const calls = mockFetch({
-      'POST /v1/auth/session': () => ({ json: { accessToken: 'tok-1', expiresAt: '2030-01-01T00:00:00Z', user: moderatorMe.user } }),
+      'POST /v1/auth/session': () => ({
+        json: { accessToken: 'tok-1', expiresAt: '2030-01-01T00:00:00Z', user: moderatorMe.user },
+      }),
       'GET /v1/me': () => ({ json: moderatorMe }),
     });
     render(
@@ -30,8 +32,16 @@ describe('Login', () => {
 
   it('rejects accounts without a moderator role', async () => {
     mockFetch({
-      'POST /v1/auth/session': () => ({ json: { accessToken: 'tok-2', expiresAt: '2030-01-01T00:00:00Z', user: { ...moderatorMe.user, role: 'user' } } }),
-      'GET /v1/me': () => ({ json: { ...moderatorMe, user: { ...moderatorMe.user, role: 'user' } } }),
+      'POST /v1/auth/session': () => ({
+        json: {
+          accessToken: 'tok-2',
+          expiresAt: '2030-01-01T00:00:00Z',
+          user: { ...moderatorMe.user, role: 'user' },
+        },
+      }),
+      'GET /v1/me': () => ({
+        json: { ...moderatorMe, user: { ...moderatorMe.user, role: 'user' } },
+      }),
     });
     render(
       <AuthProvider>
@@ -46,7 +56,10 @@ describe('Login', () => {
 
   it('explains when email sign-in is disabled', async () => {
     mockFetch({
-      'POST /v1/auth/session': () => ({ status: 404, json: { error: { code: 'feature_disabled', message: 'Dev login is disabled' } } }),
+      'POST /v1/auth/session': () => ({
+        status: 404,
+        json: { error: { code: 'feature_disabled', message: 'Dev login is disabled' } },
+      }),
     });
     render(
       <AuthProvider>

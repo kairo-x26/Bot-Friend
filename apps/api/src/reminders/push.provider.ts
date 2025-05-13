@@ -45,15 +45,26 @@ export class ExpoPushProvider implements PushProvider {
           accept: 'application/json',
           ...(this.accessToken ? { authorization: `Bearer ${this.accessToken}` } : {}),
         },
-        body: JSON.stringify(batch.map((to) => ({ to, title: message.title, body: message.body, data: message.data, sound: 'default' }))),
+        body: JSON.stringify(
+          batch.map((to) => ({
+            to,
+            title: message.title,
+            body: message.body,
+            data: message.data,
+            sound: 'default',
+          })),
+        ),
       });
       if (!res.ok) {
         this.logger.warn(`Expo push failed with ${res.status}`);
         continue;
       }
-      const json = (await res.json()) as { data?: Array<{ status: string; details?: { error?: string } }> };
+      const json = (await res.json()) as {
+        data?: Array<{ status: string; details?: { error?: string } }>;
+      };
       json.data?.forEach((ticket, idx) => {
-        if (ticket.status === 'error' && ticket.details?.error === 'DeviceNotRegistered') invalidTokens.push(batch[idx]!);
+        if (ticket.status === 'error' && ticket.details?.error === 'DeviceNotRegistered')
+          invalidTokens.push(batch[idx]!);
       });
     }
     return { invalidTokens };

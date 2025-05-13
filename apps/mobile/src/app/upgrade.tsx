@@ -10,7 +10,11 @@ import { usePrefs } from '@/lib/prefs';
 import { loadPlans, purchase, restorable, usingTestStore, type PlanId } from '@/lib/purchases';
 import { useTheme } from '@/theme/theme';
 
-const PERKS = ['Up to 600 messages a day', 'Longer voice chats', 'New mascot colors and outfits first'];
+const PERKS = [
+  'Up to 600 messages a day',
+  'Longer voice chats',
+  'New mascot colors and outfits first',
+];
 
 export default function Upgrade() {
   const t = useTheme();
@@ -34,7 +38,11 @@ export default function Upgrade() {
       setMessage('You’re premium now. Thank you for supporting Bot-Friend!');
     } catch (err) {
       if ((err as { cancelled?: boolean }).cancelled) return;
-      setMessage(err instanceof ApiClientError ? err.message : 'The purchase didn’t go through. You haven’t been charged.');
+      setMessage(
+        err instanceof ApiClientError
+          ? err.message
+          : 'The purchase didn’t go through. You haven’t been charged.',
+      );
     } finally {
       setBusy(null);
     }
@@ -59,7 +67,10 @@ export default function Upgrade() {
   }
 
   return (
-    <Screen title="Bot-Friend Premium" headerRight={<IconButton icon="close" label="Close" onPress={() => router.back()} />}>
+    <Screen
+      title="Bot-Friend Premium"
+      headerRight={<IconButton icon="close" label="Close" onPress={() => router.back()} />}
+    >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.space[4] }}>
         <Mascot size={88} mood="laughing" color={color} />
         <View style={{ flex: 1, gap: t.space[1] }}>
@@ -72,12 +83,22 @@ export default function Upgrade() {
       </View>
 
       {premium ? (
-        <View style={{ padding: t.space[5], borderRadius: t.radius.card, backgroundColor: t.dark ? t.colors.surfaceRaised : t.colors.accentCalm, gap: t.space[2] }}>
+        <View
+          style={{
+            padding: t.space[5],
+            borderRadius: t.radius.card,
+            backgroundColor: t.dark ? t.colors.surfaceRaised : t.colors.accentCalm,
+            gap: t.space[2],
+          }}
+        >
           <Text variant="subheading" display weight="semibold" tone="calm">
             You’re premium
           </Text>
           <Text tone="calm">
-            {sub.data?.subscription?.expiresAt ? `Renews or ends on ${new Date(sub.data.subscription.expiresAt).toLocaleDateString()}.` : 'Thanks for your support.'} Manage it in your store account settings.
+            {sub.data?.subscription?.expiresAt
+              ? `Renews or ends on ${new Date(sub.data.subscription.expiresAt).toLocaleDateString()}.`
+              : 'Thanks for your support.'}{' '}
+            Manage it in your store account settings.
           </Text>
         </View>
       ) : plans.isLoading ? (
@@ -128,10 +149,25 @@ export default function Upgrade() {
 
       {!premium ? (
         <View style={{ gap: t.space[2] }}>
-          <Button label="Subscribe" size="lg" loading={busy === 'buy'} disabled={!!busy} onPress={buy} testID="upgrade-subscribe" />
-          <Button label="Restore purchases" variant="ghost" loading={busy === 'restore'} disabled={!!busy} onPress={restore} />
+          <Button
+            label="Subscribe"
+            size="lg"
+            loading={busy === 'buy'}
+            disabled={!!busy}
+            onPress={buy}
+            testID="upgrade-subscribe"
+          />
+          <Button
+            label="Restore purchases"
+            variant="ghost"
+            loading={busy === 'restore'}
+            disabled={!!busy}
+            onPress={restore}
+          />
           <Text variant="caption" tone="muted">
-            Payment is charged to your {usingTestStore ? 'test store' : 'App Store or Google Play'} account. Subscriptions renew automatically until cancelled in your store settings. The free plan stays free.
+            Payment is charged to your {usingTestStore ? 'test store' : 'App Store or Google Play'}{' '}
+            account. Subscriptions renew automatically until cancelled in your store settings. The
+            free plan stays free.
           </Text>
         </View>
       ) : null}

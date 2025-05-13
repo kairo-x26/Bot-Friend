@@ -18,7 +18,9 @@ describe('MockProvider', () => {
   });
 
   it('streams deltas then a done chunk with usage', async () => {
-    const chunks = await collect(provider.generate(req('hello there'), new AbortController().signal));
+    const chunks = await collect(
+      provider.generate(req('hello there'), new AbortController().signal),
+    );
     const done = chunks.at(-1);
     expect(done?.type).toBe('done');
     const text = chunks.flatMap((c) => (c.type === 'delta' ? [c.text] : [])).join('');
@@ -26,8 +28,12 @@ describe('MockProvider', () => {
   });
 
   it('is deterministic for the same input', async () => {
-    const a = await collect(provider.generate(req('tell me something'), new AbortController().signal));
-    const b = await collect(provider.generate(req('tell me something'), new AbortController().signal));
+    const a = await collect(
+      provider.generate(req('tell me something'), new AbortController().signal),
+    );
+    const b = await collect(
+      provider.generate(req('tell me something'), new AbortController().signal),
+    );
     expect(a).toEqual(b);
   });
 
@@ -43,9 +49,9 @@ describe('MockProvider', () => {
   });
 
   it('can simulate an outage', async () => {
-    await expect(collect(provider.generate(req('[[provider-error]]'), new AbortController().signal))).rejects.toBeInstanceOf(
-      ProviderError,
-    );
+    await expect(
+      collect(provider.generate(req('[[provider-error]]'), new AbortController().signal)),
+    ).rejects.toBeInstanceOf(ProviderError);
   });
 });
 
@@ -64,7 +70,12 @@ describe('LocalModeration', () => {
   });
 
   it('does not flag ordinary jokes', () => {
-    for (const text of ['this joke kills me', 'I could die laughing', 'my code is killing me', 'I bombed my exam']) {
+    for (const text of [
+      'this joke kills me',
+      'I could die laughing',
+      'my code is killing me',
+      'I bombed my exam',
+    ]) {
       expect(mod.check(text).flagged, text).toBe(false);
     }
   });

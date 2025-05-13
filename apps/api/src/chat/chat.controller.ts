@@ -27,14 +27,23 @@ export class ChatController {
     await this.quota.checkMessageRate(user.id);
     const turn = await this.chat.prepare(user.id, assertUuid(id, 'Conversation'), input);
     // Only brand-new messages count against the daily allowance; replays and retries are free.
-    if (turn.kind === 'generate' && !turn.existingUserMessage) await this.quota.consumeMessage(user);
+    if (turn.kind === 'generate' && !turn.existingUserMessage)
+      await this.quota.consumeMessage(user);
     const sink = sseSink(reply);
     await this.chat.run(user.id, turn, input, sink);
   }
 
   @Post(':messageId/cancel')
   @HttpCode(200)
-  cancel(@CurrentUser() user: AuthUser, @Param('id') id: string, @Param('messageId') messageId: string) {
-    return this.chat.cancel(user.id, assertUuid(id, 'Conversation'), assertUuid(messageId, 'Message'));
+  cancel(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Param('messageId') messageId: string,
+  ) {
+    return this.chat.cancel(
+      user.id,
+      assertUuid(id, 'Conversation'),
+      assertUuid(messageId, 'Message'),
+    );
   }
 }
