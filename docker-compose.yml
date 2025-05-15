@@ -20,5 +20,29 @@ services:
     ports:
       - '6379:6379'
 
+  # docker compose --profile app up --build
+  api:
+    profiles: [app]
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://botfriend:botfriend@postgres:5432/botfriend
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET (32+ chars)}
+      AI_PROVIDER: ${AI_PROVIDER:-openai}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5180,http://localhost:8081}
+    ports:
+      - '4000:4000'
+    ulimits:
+      nofile: { soft: 65536, hard: 65536 }
+    sysctls:
+      net.core.somaxconn: 4096
+
 volumes:
   pgdata:

@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @bot-friend/shared build
+      - name: Format
+        run: pnpm format:check
+      - name: Typecheck
+        run: pnpm -r typecheck
+      - name: Unit and integration tests
+        run: pnpm -r test
+
+  admin-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @bot-friend/shared build
+      - run: pnpm --filter @bot-friend/admin exec playwright install --with-deps chromium
+      - run: pnpm --filter @bot-friend/admin test:e2e
+        env:
+          CI: 'true'
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/admin/test-results
+
+  ai-evals:
+    # Deterministic eval cases against the API with the mock provider. The full
+    # suite with the LLM judge runs from the "Evals" workflow before prompt/model changes.
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @bot-friend/shared build && pnpm --filter @bot-friend/api build
+      - name: Start API (embedded Postgres, mock AI)
+        run: |
+          node apps/api/dist/main.js > api.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf localhost:4000/health/ready && break; sleep 1; done
+        env:
+          DATABASE_EMBEDDED: 'true'
+          AUTH_DEV_LOGIN: 'true'
+          AI_PROVIDER: mock
+          LOG_LEVEL: warn
+          QUOTA_FREE_DAILY: '100000'
+          RATE_LIMIT_MESSAGES_PER_MINUTE: '100000'
+          RATE_LIMIT_AUTH_PER_MINUTE: '100000'
+      - run: pnpm --filter @bot-friend/evals eval --offline --baseline reports/baseline.json
+        env:
+          EVAL_BASE_URL: http://localhost:4000
+      - run: pnpm --filter @bot-friend/evals loadtest --users 200 --messages 3 --ramp 5000
+        env:
+          EVAL_BASE_URL: http://localhost:4000
+      - if: failure()
+        run: tail -n 200 api.log
+
+  mobile-web-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @bot-friend/shared build
+      - run: pnpm --filter @bot-friend/mobile exec expo export --platform web --output-dir dist-web
+      - run: pnpm --filter @bot-friend/admin build
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: checks
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: false
+          tags: bot-friend-api:ci
