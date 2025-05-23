@@ -1,4 +1,4 @@
-import { mascotPalettes, type MascotColor } from '@bot-friend/shared';
+import { mascotPalettes, type MascotAccessory, type MascotColor } from '@bot-friend/shared';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import Animated, {
@@ -13,6 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Ellipse, G, Path } from 'react-native-svg';
 import type { MascotMood } from '@/lib/chat/reducer';
+import { usePrefs } from '@/lib/prefs';
 import { useTheme } from '@/theme/theme';
 
 const INK = '#1D1933';
@@ -27,10 +28,21 @@ const MOOD_LABEL: Record<MascotMood, string> = {
   sleepy: 'sleepy',
 };
 
+const ACCESSORY_LABEL: Record<MascotAccessory, string> = {
+  none: '',
+  party_hat: 'a party hat',
+  glasses: 'glasses',
+  bow: 'a bow',
+  headphones: 'headphones',
+  crown: 'a crown',
+};
+
 export interface MascotProps {
   mood?: MascotMood;
   size?: number;
   color?: MascotColor;
+  /** Defaults to the outfit picked in Customize. */
+  accessory?: MascotAccessory;
   /** Tapping makes Bot-Friend giggle. */
   interactive?: boolean;
   testID?: string;
@@ -44,10 +56,14 @@ export function Mascot({
   mood = 'idle',
   size = 120,
   color = 'violet',
+  accessory,
   interactive = false,
   testID,
 }: MascotProps) {
   const t = useTheme();
+  const savedAccessory = usePrefs((s) => s.prefs.mascotAccessory);
+  const outfit: MascotAccessory = accessory ?? savedAccessory ?? 'none';
+  const hat = outfit === 'party_hat' || outfit === 'crown';
   const palette = mascotPalettes[color];
   const [tapMood, setTapMood] = useState<MascotMood | null>(null);
   const shown = tapMood ?? mood;
@@ -148,34 +164,36 @@ export function Mascot({
 
   const face = (
     <Animated.View style={[{ width: size, height: size }, bodyStyle]}>
-      {/* antenna pivots at its base */}
-      <Animated.View
-        style={[
-          {
-            position: 'absolute',
-            left: size * 0.47,
-            top: -size * 0.02,
-            width: size * 0.2,
-            height: size * 0.2,
-            transformOrigin: 'bottom left',
-          },
-          antennaStyle,
-        ]}
-      >
-        <Svg width="100%" height="100%" viewBox="0 0 20 20">
-          <Path
-            d="M3 19 C4 12 7 8 11 5"
-            stroke={palette.shade}
-            strokeWidth={2.4}
-            strokeLinecap="round"
-            fill="none"
-          />
-          <Path
-            d="M12.5 1.2 l1.1 2.4 2.6.3-1.9 1.8.5 2.6-2.3-1.3-2.3 1.3.5-2.6-1.9-1.8 2.6-.3Z"
-            fill={t.colors.accentWarm}
-          />
-        </Svg>
-      </Animated.View>
+      {/* antenna pivots at its base; hats replace it */}
+      {hat ? null : (
+        <Animated.View
+          style={[
+            {
+              position: 'absolute',
+              left: size * 0.47,
+              top: -size * 0.02,
+              width: size * 0.2,
+              height: size * 0.2,
+              transformOrigin: 'bottom left',
+            },
+            antennaStyle,
+          ]}
+        >
+          <Svg width="100%" height="100%" viewBox="0 0 20 20">
+            <Path
+              d="M3 19 C4 12 7 8 11 5"
+              stroke={palette.shade}
+              strokeWidth={2.4}
+              strokeLinecap="round"
+              fill="none"
+            />
+            <Path
+              d="M12.5 1.2 l1.1 2.4 2.6.3-1.9 1.8.5 2.6-2.3-1.3-2.3 1.3.5-2.6-1.9-1.8 2.6-.3Z"
+              fill={t.colors.accentWarm}
+            />
+          </Svg>
+        </Animated.View>
+      )}
 
       <Svg width={size} height={size} viewBox="0 0 100 100" style={{ position: 'absolute' }}>
         <Ellipse cx="37" cy="91" rx="8" ry="4" fill={palette.shade} />
@@ -222,10 +240,22 @@ export function Mascot({
           <Eyes mood={shown} />
         </Svg>
       </Animated.View>
+
+      {outfit !== 'none' ? (
+        <Svg
+          width={size}
+          height={size}
+          viewBox="0 0 100 100"
+          style={{ position: 'absolute' }}
+          accessibilityElementsHidden
+        >
+          <Accessory kind={outfit} shade={palette.shade} accent={t.colors.accentWarm} />
+        </Svg>
+      ) : null}
     </Animated.View>
   );
 
-  const label = `Bot-Friend, looking ${MOOD_LABEL[shown]}`;
+  const label = `Bot-Friend, looking ${MOOD_LABEL[shown]}${outfit !== 'none' ? `, wearing ${ACCESSORY_LABEL[outfit]}` : ''}`;
   if (!interactive) {
     return (
       <View testID={testID} accessible accessibilityRole="image" accessibilityLabel={label}>
@@ -334,5 +364,73 @@ function Mouth({ mood }: { mood: MascotMood }) {
           fill="none"
         />
       );
+  }
+}
+
+function Accessory({
+  kind,
+  shade,
+  accent,
+}: {
+  kind: MascotAccessory;
+  shade: string;
+  accent: string;
+}) {
+  switch (kind) {
+    case 'party_hat':
+      return (
+        <G>
+          <Path d="M33 24 L44 1 L56 20 Z" fill="#9FE8C0" />
+          <Path
+            d="M37.5 16 L50.5 11.5 M40.5 9.5 L47.8 7"
+            stroke="#FFFFFF"
+            strokeWidth={2.4}
+            strokeLinecap="round"
+          />
+          <Circle cx="44" cy="2" r="3.6" fill={accent} />
+        </G>
+      );
+    case 'crown':
+      return (
+        <Path
+          d="M35 22 L37 7 L44 15 L51 4 L58 15 L65 7 L67 22 Z"
+          fill="#FFD36E"
+          stroke="#E8B23C"
+          strokeWidth={1.4}
+          strokeLinejoin="round"
+        />
+      );
+    case 'glasses':
+      return (
+        <G stroke={INK} strokeWidth={2.6} fill="rgba(255,255,255,0.18)">
+          <Circle cx="37" cy="50" r="9.5" />
+          <Circle cx="63" cy="50" r="9.5" />
+          <Path d="M46.5 49 Q50 46.5 53.5 49" fill="none" />
+        </G>
+      );
+    case 'bow':
+      return (
+        <G>
+          <Path d="M70 22 L60 15 L61 29 Z" fill={accent} />
+          <Path d="M70 22 L80 15 L79 29 Z" fill={accent} />
+          <Circle cx="70" cy="22" r="3.4" fill="#FF8E8E" />
+        </G>
+      );
+    case 'headphones':
+      return (
+        <G>
+          <Path
+            d="M17 52 C15 18 87 16 85 52"
+            stroke={shade}
+            strokeWidth={5}
+            fill="none"
+            strokeLinecap="round"
+          />
+          <Path d="M10 44 h9 a3 3 0 0 1 3 3 v12 a3 3 0 0 1 -3 3 h-9 Z" fill={INK} />
+          <Path d="M92 44 h-9 a3 3 0 0 0 -3 3 v12 a3 3 0 0 0 3 3 h9 Z" fill={INK} />
+        </G>
+      );
+    default:
+      return null;
   }
 }

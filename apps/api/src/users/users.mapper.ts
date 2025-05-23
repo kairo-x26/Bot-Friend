@@ -23,6 +23,7 @@ export function toPreferencesDto(row: PreferencesRow): Preferences {
     largeText: row.largeText,
     hapticsEnabled: row.hapticsEnabled,
     mascotColor: row.mascotColor,
+    mascotAccessory: row.mascotAccessory,
     locale: row.locale,
     memoryEnabled: row.memoryEnabled,
     remindersEnabled: row.remindersEnabled,

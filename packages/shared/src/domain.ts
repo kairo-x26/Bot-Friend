@@ -68,6 +68,9 @@ export type ThemePreference = z.infer<typeof themePreferenceSchema>;
 export const mascotColorSchema = z.enum(['violet', 'peach', 'mint', 'lavender']);
 export type MascotColor = z.infer<typeof mascotColorSchema>;
 
+export const mascotAccessorySchema = z.enum(['none', 'party_hat', 'glasses', 'bow', 'headphones', 'crown']);
+export type MascotAccessory = z.infer<typeof mascotAccessorySchema>;
+
 export const preferencesSchema = z.object({
   comedyStyle: comedyStyleSchema,
   energy: energySchema,
@@ -78,6 +81,7 @@ export const preferencesSchema = z.object({
   largeText: z.boolean(),
   hapticsEnabled: z.boolean(),
   mascotColor: mascotColorSchema,
+  mascotAccessory: mascotAccessorySchema,
   locale: z.string().min(2).max(16),
   memoryEnabled: z.boolean(),
   remindersEnabled: z.boolean(),

@@ -75,6 +75,9 @@ export const userPreferences = pgTable('user_preferences', {
   mascotColor: text('mascot_color', { enum: ['violet', 'peach', 'mint', 'lavender'] })
     .notNull()
     .default('violet'),
+  mascotAccessory: text('mascot_accessory', { enum: ['none', 'party_hat', 'glasses', 'bow', 'headphones', 'crown'] })
+    .notNull()
+    .default('none'),
   locale: text('locale').notNull().default('en-US'),
   memoryEnabled: boolean('memory_enabled').notNull().default(false),
   remindersEnabled: boolean('reminders_enabled').notNull().default(false),

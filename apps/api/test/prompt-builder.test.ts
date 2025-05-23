@@ -13,6 +13,7 @@ const prefs: Preferences = {
   largeText: false,
   hapticsEnabled: true,
   mascotColor: 'violet',
+  mascotAccessory: 'none',
   locale: 'en-US',
   memoryEnabled: false,
   remindersEnabled: false,

@@ -19,6 +19,7 @@ export const moderatorMe: MeResponse = {
     largeText: false,
     hapticsEnabled: true,
     mascotColor: 'violet',
+    mascotAccessory: 'none',
     locale: 'en-US',
     memoryEnabled: false,
     remindersEnabled: false,

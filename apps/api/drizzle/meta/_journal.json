@@ -15,6 +15,13 @@
       "when": 1792347800218,
       "tag": "0001_reminders",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792349269096,
+      "tag": "0002_mascot_accessory",
+      "breakpoints": true
     }
   ]
 }

@@ -1,13 +1,28 @@
-import { PERSONALITIES, comedyStyles, mascotPalettes, type MascotColor } from '@bot-friend/shared';
+import {
+  PERSONALITIES,
+  comedyStyles,
+  mascotPalettes,
+  type MascotAccessory,
+  type MascotColor,
+} from '@bot-friend/shared';
 import { View } from 'react-native';
 import { BoundaryPicker } from '@/components/BoundaryPicker';
 import { BotBubblePreview } from '@/components/chat/BotBubblePreview';
 import { Mascot } from '@/components/mascot/Mascot';
-import { Screen, Section, Segmented, Tactile, Text, Toggle } from '@/components/ui';
+import { Chip, Screen, Section, Segmented, Tactile, Text, Toggle } from '@/components/ui';
 import { useUpdatePreferences } from '@/lib/api/hooks';
 import { STYLE_MOOD } from '@/lib/personality';
 import { usePrefs } from '@/lib/prefs';
 import { useTheme } from '@/theme/theme';
+
+const OUTFITS: Array<{ value: MascotAccessory; label: string }> = [
+  { value: 'none', label: 'Nothing' },
+  { value: 'party_hat', label: '🎉 Party hat' },
+  { value: 'glasses', label: '🤓 Glasses' },
+  { value: 'bow', label: '🎀 Bow' },
+  { value: 'headphones', label: '🎧 Headphones' },
+  { value: 'crown', label: '👑 Crown' },
+];
 
 const COLORS: Array<{ value: MascotColor; label: string }> = [
   { value: 'violet', label: 'Violet' },
@@ -153,6 +168,24 @@ export default function Customize() {
           })}
         </View>
       </Section>
+      <Section title="Outfit" framed={false}>
+        <View
+          accessibilityRole="radiogroup"
+          accessibilityLabel="Mascot outfit"
+          style={{ flexDirection: 'row', flexWrap: 'wrap', gap: t.space[2] }}
+        >
+          {OUTFITS.map((o) => (
+            <Chip
+              key={o.value}
+              label={o.label}
+              selected={prefs.mascotAccessory === o.value}
+              onPress={() => set({ mascotAccessory: o.value })}
+              testID={`outfit-${o.value}`}
+            />
+          ))}
+        </View>
+      </Section>
+
       {update.isError ? (
         <Text tone="danger">Couldn’t save that change. Check your connection.</Text>
       ) : null}
