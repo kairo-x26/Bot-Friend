@@ -380,14 +380,14 @@ function Accessory({
     case 'party_hat':
       return (
         <G>
-          <Path d="M33 24 L44 1 L56 20 Z" fill="#9FE8C0" />
+          <Path d="M33 26 L44 5 L56 22 Z" fill="#9FE8C0" />
           <Path
-            d="M37.5 16 L50.5 11.5 M40.5 9.5 L47.8 7"
+            d="M37.5 18.5 L50.5 14 M40.5 12 L47.8 9.5"
             stroke="#FFFFFF"
             strokeWidth={2.4}
             strokeLinecap="round"
           />
-          <Circle cx="44" cy="2" r="3.6" fill={accent} />
+          <Circle cx="44" cy="5" r="3.6" fill={accent} />
         </G>
       );
     case 'crown':
@@ -421,8 +421,9 @@ function Accessory({
         <G>
           <Path
             d="M17 52 C15 18 87 16 85 52"
-            stroke={shade}
-            strokeWidth={5}
+            stroke={INK}
+            strokeOpacity={0.85}
+            strokeWidth={4.5}
             fill="none"
             strokeLinecap="round"
           />
