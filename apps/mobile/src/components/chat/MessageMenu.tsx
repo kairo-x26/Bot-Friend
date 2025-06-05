@@ -1,7 +1,7 @@
 import { reportCategorySchema, type Reaction, type ReportCategory } from '@bot-friend/shared';
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
-import { TextInput, View } from 'react-native';
+import { Share, TextInput, View } from 'react-native';
 import { Button, Divider, ListRow, Sheet, Tactile, Text } from '@/components/ui';
 import { ApiClientError } from '@/lib/api/client';
 import { useReact, useReport } from '@/lib/api/hooks';
@@ -97,6 +97,19 @@ export function MessageMenu({
             })}
           </View>
           <Divider />
+          <ListRow
+            icon="heart"
+            label="Share"
+            detail="Send this one to a friend"
+            onPress={() => {
+              close();
+              // User-initiated share of a single reply (BF-030); nothing else from the chat is included.
+              void Share.share({ message: `${item.content}\n\n— Bot-Friend` }).catch(
+                () => undefined,
+              );
+            }}
+            testID="menu-share"
+          />
           <ListRow
             icon="check"
             label="Copy text"
