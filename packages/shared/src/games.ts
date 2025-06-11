@@ -1,7 +1,13 @@
 import { z } from 'zod';
 import type { ComedyStyle } from './personality.js';
 
-export const gameIds = ['joke_battle', 'roast_me', 'would_you_rather', 'story_builder'] as const;
+export const gameIds = [
+  'joke_battle',
+  'roast_me',
+  'would_you_rather',
+  'story_builder',
+  'silly_quiz',
+] as const;
 export const gameIdSchema = z.enum(gameIds);
 export type GameId = z.infer<typeof gameIdSchema>;
 
@@ -38,6 +44,14 @@ export const GAMES: Record<GameId, GameInfo> = {
     description: 'Absurd dilemmas with ridiculous consequences.',
     emoji: '🤔',
     maxRounds: null,
+    requiresRoastOptIn: false,
+  },
+  silly_quiz: {
+    id: 'silly_quiz',
+    title: 'Silly Quiz',
+    description: 'Ridiculous multiple-choice trivia. Some answers are real, most are not.',
+    emoji: '🧠',
+    maxRounds: 5,
     requiresRoastOptIn: false,
   },
   story_builder: {
@@ -90,6 +104,16 @@ export const GAME_OPENERS: Record<GameId, Record<ComedyStyle, string>> = {
       'Would you rather 🤔 always be 10 minutes late, or always be 2 hours early and have to pretend that was on purpose?',
     chill:
       'Would you rather 🤔 live in a cozy cabin that only has soup, or a beach hut that only has snacks?',
+  },
+  silly_quiz: {
+    wholesome:
+      'Silly Quiz! 🧠 Question 1: what is a group of flamingos called? A) a flamboyance B) a pinkening C) a wobble. Take a guess!',
+    chaotic:
+      'SILLY QUIZ ACTIVATED. 🧠 Q1: Which of these is real? A) wombats make cube-shaped poop B) a self-aware toaster C) a fish that files taxes. GO!',
+    sarcastic:
+      'Silly Quiz. 🧠 Question 1, try not to embarrass yourself: how many hearts does an octopus have? A) one B) three C) none, like my ex. Answer away.',
+    chill:
+      'Easy little quiz. 🧠 Question 1: what do sea otters hold while they sleep? A) hands B) tiny pillows C) grudges. No pressure.',
   },
   story_builder: {
     wholesome:

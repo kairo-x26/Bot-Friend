@@ -184,6 +184,7 @@ const MODE_EMOJI: Record<Conversation['mode'], string> = {
   roast_me: '🔥',
   would_you_rather: '🤔',
   story_builder: '📖',
+  silly_quiz: '🧠',
 };
 
 function ConversationRow({ convo }: { convo: Conversation }) {

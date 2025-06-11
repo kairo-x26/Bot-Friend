@@ -75,7 +75,9 @@ export const userPreferences = pgTable('user_preferences', {
   mascotColor: text('mascot_color', { enum: ['violet', 'peach', 'mint', 'lavender'] })
     .notNull()
     .default('violet'),
-  mascotAccessory: text('mascot_accessory', { enum: ['none', 'party_hat', 'glasses', 'bow', 'headphones', 'crown'] })
+  mascotAccessory: text('mascot_accessory', {
+    enum: ['none', 'party_hat', 'glasses', 'bow', 'headphones', 'crown'],
+  })
     .notNull()
     .default('none'),
   locale: text('locale').notNull().default('en-US'),
@@ -107,7 +109,7 @@ export const conversations = pgTable(
     title: text('title').notNull(),
     titleIsAuto: boolean('title_is_auto').notNull().default(true),
     mode: text('mode', {
-      enum: ['chat', 'joke_battle', 'roast_me', 'would_you_rather', 'story_builder'],
+      enum: ['chat', 'joke_battle', 'roast_me', 'would_you_rather', 'story_builder', 'silly_quiz'],
     })
       .notNull()
       .default('chat'),

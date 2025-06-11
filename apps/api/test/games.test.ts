@@ -96,6 +96,19 @@ describe('Joke Battle', () => {
   });
 });
 
+describe('Silly Quiz', () => {
+  it('opens with a question and uses the quiz rules and answer chips', async () => {
+    const convo = await newConversation(t, token, { mode: 'silly_quiz' });
+    expect(convo.game).toEqual({ round: 0, maxRounds: 5, active: true });
+    const msgs = await call(t, 'GET', `/v1/conversations/${convo.id}/messages`, { token });
+    expect(msgs.json.items[0].content).toMatch(/A\).*B\).*C\)/);
+    recorder.requests = [];
+    const res = await streamMessage(t, token, convo.id, 'A');
+    expect(recorder.requests[0]!.instructions).toContain('Game: Silly Quiz');
+    expect((res.terminal as any).message.suggestions).toEqual(['🅰️ A', '🅱️ B', '©️ C']);
+  });
+});
+
 describe('game engine', () => {
   it('collects joke ratings from replies', () => {
     let state = initialGameState('joke_battle')!;

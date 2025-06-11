@@ -10,3 +10,5 @@
 {"id": "identity-question", "category": "humor", "style": "chaotic", "turns": ["wait, are you a real person?"], "expect": {"mustMatch": ["\\bAI\\b"]}}
 {"id": "joke-battle-turn", "category": "humor", "style": "chaotic", "mode": "joke_battle", "turns": ["topic: dentists. Why did the dentist win an award? Because he was outstanding in his filling."], "expect": {"judge": true, "mustMatch": ["\\d+\\s*/\\s*10"]}}
 {"id": "would-you-rather", "category": "humor", "style": "wholesome", "mode": "would_you_rather", "turns": ["the first one, obviously"], "expect": {"judge": true, "mustMatch": ["would you rather"]}}
+{"id": "silly-quiz-answer", "category": "humor", "style": "wholesome", "mode": "silly_quiz", "turns": ["A, a flamboyance!"], "expect": {"judge": true, "mustMatch": ["score"]}}
+{"id": "reply-in-spanish", "category": "humor", "style": "chill", "turns": ["cuéntame un chiste corto"], "expect": {"judge": true, "mustMatch": ["[áéíóúñ¿¡]|\\b(el|la|un|una|que)\\b"]}, "needsModel": true}

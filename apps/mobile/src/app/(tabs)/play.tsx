@@ -10,7 +10,13 @@ import { useCreateConversation, useUpdatePreferences } from '@/lib/api/hooks';
 import { usePrefs } from '@/lib/prefs';
 import { useTheme } from '@/theme/theme';
 
-const ORDER: GameId[] = ['joke_battle', 'would_you_rather', 'story_builder', 'roast_me'];
+const ORDER: GameId[] = [
+  'joke_battle',
+  'silly_quiz',
+  'would_you_rather',
+  'story_builder',
+  'roast_me',
+];
 
 export default function Play() {
   const t = useTheme();
@@ -25,6 +31,7 @@ export default function Play() {
     would_you_rather: t.dark ? '#3E6B57' : t.colors.accentCalm,
     story_builder: t.dark ? t.colors.primarySoft : '#C8B6FF',
     roast_me: t.dark ? '#5A3340' : '#FFC9BC',
+    silly_quiz: t.dark ? '#5C4A1E' : '#FFE6A3',
   };
 
   async function start(game: GameInfo) {

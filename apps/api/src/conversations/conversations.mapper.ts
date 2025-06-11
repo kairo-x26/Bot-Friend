@@ -36,6 +36,7 @@ export const MODE_TITLES: Record<ConversationRow['mode'], string> = {
   roast_me: 'Roast Me',
   would_you_rather: 'Would You Rather',
   story_builder: 'Story Builder',
+  silly_quiz: 'Silly Quiz',
 };
 
 /** Short single-line preview for conversation lists. */

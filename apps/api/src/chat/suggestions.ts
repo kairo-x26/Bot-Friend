@@ -21,6 +21,7 @@ const MODE_CHIPS: Partial<Record<ConversationMode, string[]>> = {
   roast_me: ['🔥 Another one', '🧯 Go easier', '✋ That’s enough'],
   would_you_rather: ['🅰️ The first one', '🅱️ The second one', '⏭️ Next dilemma'],
   story_builder: ['🌀 Add a twist', '🦆 Add a goose', '🏁 Wrap it up'],
+  silly_quiz: ['🅰️ A', '🅱️ B', '©️ C'],
 };
 
 /**

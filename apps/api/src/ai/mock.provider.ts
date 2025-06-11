@@ -135,6 +135,9 @@ function composeReply(instructions: string, userText: string): string {
   if (instructions.includes('Game: Would You Rather')) {
     return `${pick(['Bold pick.', 'Interesting. Chaotic, but interesting.', 'I respect it.'], userText)} Next one: would you rather have a pet cloud that rains on your enemies, or a tiny dragon that only toasts marshmallows?`;
   }
+  if (instructions.includes('Game: Silly Quiz')) {
+    return `${pick(['Correct! 🎉', 'Nope! Close though.', 'Ooh, so close.'], userText)} Real fact: a group of flamingos really is called a flamboyance. Score: 1/1. Next: which animal can sleep standing up? A) horses B) cats C) jellyfish`;
+  }
   if (instructions.includes('Game: Story Builder')) {
     return 'Suddenly, a goose in a tiny business suit burst through the door holding a briefcase full of bread. "We need to talk," it honked. Your turn!';
   }
