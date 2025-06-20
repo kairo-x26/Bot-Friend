@@ -19,6 +19,7 @@ import {
   type MessageRow,
 } from '../db/schema.js';
 import {
+  BLOCKED_IMAGE_MESSAGE,
   BLOCKED_OUTPUT_MESSAGE,
   SafetyService,
   type InputVerdict,
@@ -57,6 +58,9 @@ export class ChatService {
    * before any stream bytes are written.
    */
   async prepare(userId: string, conversationId: string, body: SendMessage): Promise<PreparedTurn> {
+    if (body.image && !this.config.env.FEATURE_IMAGES) {
+      throw new ApiError(ErrorCode.FeatureDisabled, 'Photo messages aren’t available yet');
+    }
     const conversation = await this.conversations.getOwned(userId, conversationId);
     const [existing] = await this.db
       .select()
@@ -102,6 +106,19 @@ export class ChatService {
     const { conversation } = turn;
 
     const verdict = await this.safety.checkInput(body.content);
+    if (verdict.action === 'allow' && body.image && !turn.existingUserMessage) {
+      const photo = await this.safety.checkImage(body.image);
+      if (!photo.ok) {
+        await this.blockInput(
+          userId,
+          conversation,
+          body,
+          { action: 'block', categories: photo.categories, replacement: BLOCKED_IMAGE_MESSAGE },
+          sink,
+        );
+        return;
+      }
+    }
     if (verdict.action !== 'allow') {
       await this.blockInput(userId, conversation, body, verdict, sink);
       return;
@@ -134,6 +151,7 @@ export class ChatService {
             content: body.content,
             status: 'completed',
             idempotencyKey: body.idempotencyKey,
+            attachments: body.image ? [{ kind: 'image', mediaType: body.image.mediaType }] : [],
             createdAt: new Date(now),
           })
           .returning();
@@ -187,7 +205,11 @@ export class ChatService {
         await this.conversations.history(conversation.id, this.config.env.AI_HISTORY_MESSAGES + 1)
       )
         .filter((m) => m.id !== userMessage.id)
-        .map<PromptMessage>((m) => ({ role: m.role as PromptMessage['role'], content: m.content }));
+        .map<PromptMessage>((m) => ({
+          role: m.role as PromptMessage['role'],
+          // Past photos are not re-sent; the model just knows one was shared.
+          content: m.attachments?.length ? `${m.content} [shared a photo]` : m.content,
+        }));
 
       const memories = await this.memory.forPrompt(userId, prefs.memoryEnabled);
       const prompt = buildPrompt(
@@ -215,7 +237,9 @@ export class ChatService {
       for await (const chunk of this.ai.generate(
         {
           instructions: prompt.instructions,
-          input: prompt.input,
+          input: body.image
+            ? [...prompt.input.slice(0, -1), { ...prompt.input.at(-1)!, images: [body.image] }]
+            : prompt.input,
           maxOutputTokens: this.config.env.AI_MAX_OUTPUT_TOKENS,
           safetyIdentifier: userId,
         },

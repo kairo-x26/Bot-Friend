@@ -76,6 +76,7 @@ const envSchema = z.object({
   FEATURE_MEMORY: bool.default(true),
   FEATURE_VOICE: bool.default(false),
   FEATURE_BILLING: bool.default(false),
+  FEATURE_IMAGES: bool.default(false),
   BILLING_WEBHOOK_SECRET: z.string().optional(),
   APPLE_BUNDLE_ID: z.string().default('app.botfriend.mobile'),
   /** SHA-256 fingerprints (hex, no colons) of trusted Apple root certs. Defaults to Apple Root CA - G3. */

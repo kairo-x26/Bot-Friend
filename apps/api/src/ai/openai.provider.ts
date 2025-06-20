@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import type { AppConfig } from '../config/config.js';
 import {
+  type PromptImage,
   ProviderError,
   type AiProvider,
   type GenerateChunk,
@@ -45,7 +46,21 @@ export class OpenAiProvider implements AiProvider {
         {
           model: this.config.env.OPENAI_CHAT_MODEL,
           instructions: req.instructions,
-          input: req.input.map((m) => ({ role: m.role, content: m.content })),
+          input: req.input.map((m) =>
+            m.images?.length && m.role === 'user'
+              ? {
+                  role: m.role,
+                  content: [
+                    { type: 'input_text' as const, text: m.content },
+                    ...m.images.map((img) => ({
+                      type: 'input_image' as const,
+                      image_url: `data:${img.mediaType};base64,${img.data}`,
+                      detail: 'low' as const,
+                    })),
+                  ],
+                }
+              : { role: m.role, content: m.content },
+          ),
           max_output_tokens: req.maxOutputTokens,
           // We keep our own history; don't ask the provider to store application state.
           store: false,
@@ -120,6 +135,33 @@ export class OpenAiModeration implements ModerationProvider {
     try {
       const res = await this.openai.moderations.create(
         { model: this.config.env.OPENAI_MODERATION_MODEL, input: text },
+        { signal },
+      );
+      const result = res.results[0];
+      if (!result) return { flagged: false, categories: [] };
+      const categories = new Set<ModerationCategory>();
+      for (const [key, value] of Object.entries(result.categories)) {
+        const mapped = CATEGORY_MAP[key];
+        if (value && mapped) categories.add(mapped);
+      }
+      return { flagged: result.flagged, categories: [...categories] };
+    } catch (err) {
+      throw wrap(err);
+    }
+  }
+
+  async moderateImage(image: PromptImage, signal?: AbortSignal): Promise<ModerationResult> {
+    try {
+      const res = await this.openai.moderations.create(
+        {
+          model: this.config.env.OPENAI_MODERATION_MODEL,
+          input: [
+            {
+              type: 'image_url',
+              image_url: { url: `data:${image.mediaType};base64,${image.data}` },
+            },
+          ],
+        },
         { signal },
       );
       const result = res.results[0];

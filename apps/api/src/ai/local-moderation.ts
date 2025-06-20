@@ -29,6 +29,11 @@ export class LocalModeration implements ModerationProvider {
     return this.check(text);
   }
 
+  /** Offline/mock mode only: there is no local image classifier, so photos pass. */
+  async moderateImage(): Promise<ModerationResult> {
+    return { flagged: false, categories: [] };
+  }
+
   check(text: string): ModerationResult {
     const categories = PATTERNS.filter(([, re]) => re.test(text)).map(([c]) => c);
     return { flagged: categories.length > 0, categories };

@@ -49,7 +49,12 @@ export class FeedbackController {
   @Public()
   @Get('features')
   features(): FeatureFlags {
-    const { FEATURE_MEMORY, FEATURE_VOICE, FEATURE_BILLING } = this.config.env;
-    return { memory: FEATURE_MEMORY, voice: FEATURE_VOICE, billing: FEATURE_BILLING };
+    const { FEATURE_MEMORY, FEATURE_VOICE, FEATURE_BILLING, FEATURE_IMAGES } = this.config.env;
+    return {
+      memory: FEATURE_MEMORY,
+      voice: FEATURE_VOICE,
+      billing: FEATURE_BILLING,
+      images: FEATURE_IMAGES,
+    };
   }
 }

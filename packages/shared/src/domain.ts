@@ -125,6 +125,12 @@ export type MessageStatus = z.infer<typeof messageStatusSchema>;
 export const reactionSchema = z.enum(['laugh', 'love', 'meh', 'up', 'down']);
 export type Reaction = z.infer<typeof reactionSchema>;
 
+export const attachmentSchema = z.object({
+  kind: z.literal('image'),
+  mediaType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
+});
+export type Attachment = z.infer<typeof attachmentSchema>;
+
 export const messageSchema = z.object({
   id: uuid,
   conversationId: uuid,
@@ -135,6 +141,8 @@ export const messageSchema = z.object({
   suggestions: z.array(z.string()).default([]),
   /** Safety reply that should be shown with crisis/support resources. */
   supportResources: z.boolean().default(false),
+  /** Metadata only: image bytes are never stored or returned. */
+  attachments: z.array(attachmentSchema).default([]),
   createdAt: isoDate,
 });
 export type Message = z.infer<typeof messageSchema>;
@@ -198,6 +206,8 @@ export const conversationDetailSchema = conversationSchema.extend({
 export type ConversationDetail = z.infer<typeof conversationDetailSchema>;
 
 export const MAX_MESSAGE_LENGTH = 4000;
+/** ~1 MB decoded. Clients downscale photos to 1024px before sending. */
+export const MAX_IMAGE_BASE64 = 1_400_000;
 
 export const sendMessageSchema = z.object({
   content: z.string().trim().min(1, 'Message is empty').max(MAX_MESSAGE_LENGTH),
@@ -205,6 +215,16 @@ export const sendMessageSchema = z.object({
   idempotencyKey: z.string().min(8).max(100),
   /** Override style for this reply only (e.g. chip tap). Defaults to preferences. */
   comedyStyle: comedyStyleSchema.optional(),
+  /** Optional photo for this turn only (BF-028). Base64 without the data: prefix. */
+  image: z
+    .object({
+      mediaType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
+      data: z
+        .string()
+        .max(MAX_IMAGE_BASE64)
+        .regex(/^[A-Za-z0-9+/=]+$/, 'Image must be base64'),
+    })
+    .optional(),
 });
 export type SendMessage = z.infer<typeof sendMessageSchema>;
 

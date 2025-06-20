@@ -4,6 +4,7 @@ import {
   MODERATION_PROVIDER,
   type ModerationCategory,
   type ModerationProvider,
+  type PromptImage,
 } from '../ai/provider.js';
 import { OutputGuard } from './output-guard.js';
 
@@ -17,6 +18,9 @@ export const SUPPORT_MESSAGE =
 
 export const BLOCKED_INPUT_MESSAGE =
   'That’s not something I can help with. Want to talk about something else, or play a game?';
+
+export const BLOCKED_IMAGE_MESSAGE =
+  'I can’t look at that photo. Want to tell me about it instead?';
 
 export const BLOCKED_OUTPUT_MESSAGE =
   'Hmm, that reply came out wrong, so I scrapped it. Want to try asking a different way?';
@@ -57,6 +61,23 @@ export class SafetyService {
     if (!asksIfHuman(userText) || /\b(AI|artificial intelligence|a bot|chatbot)\b/i.test(reply))
       return reply;
     return `${reply}\n\n(Just so you know: I’m an AI, not a person.)`;
+  }
+
+  /**
+   * Photos are moderated by the provider before the model sees them. If the
+   * provider can't moderate images (or is down) the photo is refused: there is
+   * no local fallback for images, so this fails closed.
+   */
+  async checkImage(image: PromptImage): Promise<{ ok: boolean; categories: ModerationCategory[] }> {
+    const moderate = this.provider.moderateImage?.bind(this.provider);
+    if (!moderate) return { ok: false, categories: [] };
+    try {
+      const res = await moderate(image);
+      return { ok: !res.flagged, categories: res.categories };
+    } catch (err) {
+      this.logger.warn(`Image moderation unavailable: ${(err as Error).message}`);
+      return { ok: false, categories: [] };
+    }
   }
 
   outputGuard(): OutputGuard {

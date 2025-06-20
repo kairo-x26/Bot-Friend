@@ -1,6 +1,14 @@
+export interface PromptImage {
+  mediaType: 'image/jpeg' | 'image/png' | 'image/webp';
+  /** Base64 without the data: prefix. */
+  data: string;
+}
+
 export interface PromptMessage {
   role: 'user' | 'assistant';
   content: string;
+  /** Only ever set on the current user turn; past photos are not re-sent. */
+  images?: PromptImage[];
 }
 
 export interface GenerateRequest {
@@ -33,6 +41,8 @@ export interface ModerationResult {
 export interface ModerationProvider {
   readonly name: string;
   moderate(text: string, signal?: AbortSignal): Promise<ModerationResult>;
+  /** Providers that can't look at images leave this out; photos are then refused. */
+  moderateImage?(image: PromptImage, signal?: AbortSignal): Promise<ModerationResult>;
 }
 
 export const AI_PROVIDER = Symbol('AI_PROVIDER');

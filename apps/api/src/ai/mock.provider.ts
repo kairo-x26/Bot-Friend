@@ -22,7 +22,10 @@ export class MockProvider implements AiProvider {
     const last = req.input.at(-1)?.content ?? '';
     if (last.includes('[[provider-error]]')) throw new ProviderError('Mock provider outage');
 
-    const text = composeReply(req.instructions, last);
+    const hasPhoto = Boolean(req.input.at(-1)?.images?.length);
+    const text = hasPhoto
+      ? 'Nice photo! 📸 In offline mode I can’t see details, so I’m going to assume it’s a very good dog wearing sunglasses.'
+      : composeReply(req.instructions, last);
     const delay = last.includes('[[slow]]') ? 200 : this.delayMs;
     const words = text.split(/(?<=\s)/);
     for (const word of words) {

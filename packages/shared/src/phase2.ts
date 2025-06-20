@@ -107,6 +107,7 @@ export const featureFlagsSchema = z.object({
   memory: z.boolean(),
   voice: z.boolean(),
   billing: z.boolean(),
+  images: z.boolean(),
 });
 export type FeatureFlags = z.infer<typeof featureFlagsSchema>;
 

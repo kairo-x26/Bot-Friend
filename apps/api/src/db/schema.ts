@@ -148,6 +148,11 @@ export const messages = pgTable(
       .$type<string[]>()
       .notNull()
       .default(sql`'[]'::jsonb`),
+    /** Attachment metadata only; image bytes are never persisted. */
+    attachments: jsonb('attachments')
+      .$type<Array<{ kind: 'image'; mediaType: 'image/jpeg' | 'image/png' | 'image/webp' }>>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     modelId: text('model_id'),
     promptVersion: text('prompt_version'),
     errorCode: text('error_code'),

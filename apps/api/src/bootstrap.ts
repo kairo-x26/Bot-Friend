@@ -31,7 +31,8 @@ export async function createApp(options: AppModuleOptions): Promise<NestFastifyA
             // Never log message bodies or tokens.
             redact: ['req.headers.authorization', 'req.body', 'res.body'],
           },
-    bodyLimit: 64 * 1024,
+    // Room for one downscaled photo per message (MAX_IMAGE_BASE64); everything else is tiny.
+    bodyLimit: 2 * 1024 * 1024,
     trustProxy: true,
     requestIdHeader: false,
     genReqId: (req: { headers: Record<string, string | string[] | undefined> }) => {

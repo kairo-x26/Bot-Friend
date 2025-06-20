@@ -92,6 +92,7 @@ describe('GET /v1/features', () => {
       memory: true,
       voice: true,
       billing: false,
+      images: false,
     });
   });
 });
