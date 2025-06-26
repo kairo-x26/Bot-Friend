@@ -1,4 +1,4 @@
-import type { Message, Reaction, StreamEvent } from '@bot-friend/shared';
+import type { Attachment, Message, Reaction, StreamEvent } from '@bot-friend/shared';
 
 export type ItemStatus = Message['status'] | 'sending' | 'unsent';
 
@@ -16,6 +16,9 @@ export interface ChatItem {
   idempotencyKey?: string;
   /** Assistant replies that are a safety response with support resources. */
   supportResources?: boolean;
+  attachments?: Attachment[];
+  /** On-device preview of a photo this device just sent (never from the server). */
+  localImageUri?: string;
   error?: string;
   retryable?: boolean;
 }
@@ -29,7 +32,14 @@ export interface ChatState {
 
 export type ChatAction =
   | { type: 'load'; messages: Message[] }
-  | { type: 'send'; localKey: string; content: string; idempotencyKey: string; now: string }
+  | {
+      type: 'send';
+      localKey: string;
+      content: string;
+      idempotencyKey: string;
+      now: string;
+      imageUri?: string;
+    }
   | { type: 'event'; localKey: string; event: StreamEvent }
   | { type: 'sendError'; localKey: string; message: string; retryable: boolean }
   | { type: 'retry'; localKey: string }
@@ -48,6 +58,7 @@ const fromServer = (m: Message): ChatItem => ({
   reaction: m.reaction,
   createdAt: m.createdAt,
   supportResources: m.supportResources,
+  attachments: m.attachments,
 });
 
 function replaceItem(items: ChatItem[], key: string, patch: Partial<ChatItem>): ChatItem[] {
@@ -87,6 +98,12 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
             reaction: null,
             createdAt: action.now,
             idempotencyKey: action.idempotencyKey,
+            ...(action.imageUri
+              ? {
+                  localImageUri: action.imageUri,
+                  attachments: [{ kind: 'image' as const, mediaType: 'image/jpeg' as const }],
+                }
+              : {}),
           },
         ],
       };

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { ApiClientError, api } from '../api/client';
 import { fetchOlderMessages, touchConversation } from '../api/hooks';
 import { streamMessage } from '../api/stream';
+import type { PickedPhoto } from '../photo';
 import {
   chatReducer,
   initialChatState,
@@ -27,6 +28,8 @@ export function useChatThread(conversationId: string, detail: ConversationDetail
   const [loadingOlder, setLoadingOlder] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
   const loadedFor = useRef<string | null>(null);
+  // Photo bytes stay out of React state; kept only so a retry can resend them.
+  const photos = useRef(new Map<string, PickedPhoto>());
 
   useEffect(() => {
     if (!detail || loadedFor.current === detail.id) return;
@@ -44,15 +47,22 @@ export function useChatThread(conversationId: string, detail: ConversationDetail
       idempotencyKey: string,
       comedyStyle?: ComedyStyle,
     ) => {
+      const photo = photos.current.get(localKey);
       const controller = new AbortController();
       abortRef.current = controller;
       try {
         await streamMessage(
           conversationId,
-          { content, idempotencyKey, ...(comedyStyle ? { comedyStyle } : {}) },
+          {
+            content,
+            idempotencyKey,
+            ...(comedyStyle ? { comedyStyle } : {}),
+            ...(photo ? { image: { mediaType: photo.mediaType, data: photo.data } } : {}),
+          },
           { onEvent: (event) => dispatch({ type: 'event', localKey, event }) },
           controller.signal,
         );
+        photos.current.delete(localKey);
         touchConversation(qc, conversationId);
       } catch (err) {
         if (controller.signal.aborted) return;
@@ -76,12 +86,20 @@ export function useChatThread(conversationId: string, detail: ConversationDetail
   );
 
   const send = useCallback(
-    (content: string, comedyStyle?: ComedyStyle) => {
+    (content: string, comedyStyle?: ComedyStyle, photo?: PickedPhoto) => {
       if (state.streamingKey) return;
       setQuota(null);
       const localKey = `local-${Crypto.randomUUID()}`;
       const idempotencyKey = Crypto.randomUUID();
-      dispatch({ type: 'send', localKey, content, idempotencyKey, now: new Date().toISOString() });
+      if (photo) photos.current.set(localKey, photo);
+      dispatch({
+        type: 'send',
+        localKey,
+        content,
+        idempotencyKey,
+        now: new Date().toISOString(),
+        imageUri: photo?.uri,
+      });
       void run(localKey, content, idempotencyKey, comedyStyle);
     },
     [run, state.streamingKey],
@@ -172,6 +190,7 @@ function toMessage(i: ChatItem) {
       reaction: i.reaction,
       suggestions: i.suggestions,
       supportResources: !!i.supportResources,
+      attachments: i.attachments ?? [],
       createdAt: i.createdAt,
     },
   ];

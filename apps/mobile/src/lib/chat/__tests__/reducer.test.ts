@@ -21,6 +21,7 @@ const userMsg: Message = {
   reaction: null,
   suggestions: [],
   supportResources: false,
+  attachments: [],
   createdAt: now,
 };
 

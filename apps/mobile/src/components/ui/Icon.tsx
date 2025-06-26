@@ -24,7 +24,8 @@ export type IconName =
   | 'brain'
   | 'download'
   | 'bell'
-  | 'edit';
+  | 'edit'
+  | 'image';
 
 interface IconProps {
   name: IconName;
@@ -128,6 +129,13 @@ export function Icon({ name, size = 24, color, strokeWidth = 2 }: IconProps) {
         />
       )}
       {name === 'download' && <Path {...common} d="M12 4.5v10m0 0-4-4m4 4 4-4M5.5 19h13" />}
+      {name === 'image' && (
+        <>
+          <Rect {...common} x="4" y="5" width="16" height="14" rx="3" />
+          <Circle cx="9" cy="10" r="1.6" fill={c} />
+          <Path {...common} d="m6 17 4.5-4.5 3 3L16 13l3 3" />
+        </>
+      )}
       {name === 'edit' && (
         <Path {...common} d="M5 19h3.5L18 9.5 14.5 6 5 15.5V19ZM13 7.5l3.5 3.5" />
       )}

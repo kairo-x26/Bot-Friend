@@ -28,4 +28,20 @@ describe('Composer', () => {
     await fireEvent.press(screen.getByLabelText('Stop reply'));
     expect(onStop).toHaveBeenCalled();
   });
+
+  it('attaches a downscaled photo and sends it with a default caption', async () => {
+    const onSend = jest.fn();
+    await renderWithTheme(<Composer onSend={onSend} allowPhotos />);
+    await fireEvent.press(screen.getByTestId('composer-photo'));
+    expect(await screen.findByLabelText('Photo ready to send')).toBeTruthy();
+    const manip = jest.requireMock('expo-image-manipulator') as { __ctx: { resize: jest.Mock } };
+    expect(manip.__ctx.resize).toHaveBeenCalledWith({ width: 1024 });
+    await fireEvent.press(screen.getByTestId('composer-send'));
+    expect(onSend).toHaveBeenCalledWith('Here’s a photo.', { uri: 'file:///small.jpg', mediaType: 'image/jpeg', data: 'QUJD' });
+  });
+
+  it('hides the photo button unless photos are enabled', async () => {
+    await renderWithTheme(<Composer onSend={jest.fn()} />);
+    expect(screen.queryByTestId('composer-photo')).toBeNull();
+  });
 });

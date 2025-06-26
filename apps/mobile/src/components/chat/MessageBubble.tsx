@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { View } from 'react-native';
+import { Image, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ThinkingDots } from '@/components/mascot/ThinkingDots';
 import { Button, Tactile, Text } from '@/components/ui';
@@ -53,6 +53,26 @@ export const MessageBubble = memo(function MessageBubble({ item, onRetry, onLong
         borderStyle: muted ? 'dashed' : 'solid',
       }}
     >
+      {item.localImageUri ? (
+        <Image
+          source={{ uri: item.localImageUri }}
+          accessibilityLabel="Photo you shared"
+          style={{
+            width: 200,
+            height: 200,
+            borderRadius: t.radius.bubble - 8,
+            marginBottom: t.space[2],
+          }}
+          resizeMode="cover"
+        />
+      ) : item.attachments?.some((a) => a.kind === 'image') ? (
+        <Text
+          variant="caption"
+          style={{ color: mine ? t.colors.userBubbleText : t.colors.textMuted, marginBottom: 2 }}
+        >
+          📷 Photo
+        </Text>
+      ) : null}
       {streaming && !item.content ? (
         <ThinkingDots />
       ) : (

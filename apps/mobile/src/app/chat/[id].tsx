@@ -264,7 +264,8 @@ export default function ChatScreen() {
         ) : null}
         <View style={{ paddingHorizontal: t.space[3] }}>
           <Composer
-            onSend={(text) => thread.send(text)}
+            allowPhotos={features.data?.images}
+            onSend={(text, photo) => thread.send(text, undefined, photo)}
             onStop={() => void thread.stop()}
             streaming={thread.streaming}
             disabled={!detail.data}
