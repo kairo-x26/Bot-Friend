@@ -37,7 +37,11 @@ describe('Composer', () => {
     const manip = jest.requireMock('expo-image-manipulator') as { __ctx: { resize: jest.Mock } };
     expect(manip.__ctx.resize).toHaveBeenCalledWith({ width: 1024 });
     await fireEvent.press(screen.getByTestId('composer-send'));
-    expect(onSend).toHaveBeenCalledWith('Here’s a photo.', { uri: 'file:///small.jpg', mediaType: 'image/jpeg', data: 'QUJD' });
+    expect(onSend).toHaveBeenCalledWith('Here’s a photo.', {
+      uri: 'file:///small.jpg',
+      mediaType: 'image/jpeg',
+      data: 'QUJD',
+    });
   });
 
   it('hides the photo button unless photos are enabled', async () => {

@@ -41,9 +41,21 @@ if (typeof globalThis.document === 'undefined') {
 
 jest.mock('expo-image-picker', () => ({
   requestMediaLibraryPermissionsAsync: jest.fn(async () => ({ granted: true })),
-  launchImageLibraryAsync: jest.fn(async () => ({ canceled: false, assets: [{ uri: 'file:///photo.jpg', width: 2048, height: 1536 }] })),
+  launchImageLibraryAsync: jest.fn(async () => ({
+    canceled: false,
+    assets: [{ uri: 'file:///photo.jpg', width: 2048, height: 1536 }],
+  })),
 }));
 jest.mock('expo-image-manipulator', () => {
-  const ctx = { resize: jest.fn(), renderAsync: jest.fn(async () => ({ saveAsync: jest.fn(async () => ({ uri: 'file:///small.jpg', base64: 'QUJD' })) })) };
-  return { ImageManipulator: { manipulate: jest.fn(() => ctx) }, SaveFormat: { JPEG: 'jpeg' }, __ctx: ctx };
+  const ctx = {
+    resize: jest.fn(),
+    renderAsync: jest.fn(async () => ({
+      saveAsync: jest.fn(async () => ({ uri: 'file:///small.jpg', base64: 'QUJD' })),
+    })),
+  };
+  return {
+    ImageManipulator: { manipulate: jest.fn(() => ctx) },
+    SaveFormat: { JPEG: 'jpeg' },
+    __ctx: ctx,
+  };
 });
