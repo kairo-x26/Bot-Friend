@@ -88,6 +88,12 @@ React Native Testing Library for mobile, Playwright for admin end-to-end.
 34. Dockerfile, docker-compose, GitHub Actions CI, EAS config.
 35. Guidelines: architecture, dev setup, conventions, testing, safety, release runbooks.
 
+## Status
+
+All stages above are implemented. See `docs/GUIDELINES.md` §19 for where each PRD requirement lives and §20 for
+what is still open (native voice transport, store sandbox validation, on-device performance testing,
+legal review).
+
 ## Definition of done per stage
 - `pnpm -r typecheck` and `pnpm -r test` pass.
 - New behaviour has tests; bug fixes get a regression test.
